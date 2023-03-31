@@ -1,123 +1,268 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import { Inter } from "next/font/google";
+import ProjectHubHeader from "@/components/header";
+import ControlPanel from "@/components/controlPanel";
+import GroupPanel from "@/components/groupPanel";
+import { useEffect, useState } from "react";
+import {
+  addGroup,
+  getGroupItems,
+  getGroups
+} from "@/modules/ControlPanelModule";
+import { Modal, Text, Input, Button, Card } from "@nextui-org/react";
+import { Grid, Collapse } from "@mui/material";
+import { shutdown } from "@/modules/SystemControlModule";
+import { useRouter } from "next/router";
+import DesktopAccessDisabledIcon from "@mui/icons-material/DesktopAccessDisabled";
+export default function Home({ socketMessage, socket, serverAlive }: any) {
+  const router = useRouter();
+  const query = router.query;
+  const [groups, setGroups] = useState([]);
+  const [groupItems, setGroupItems] = useState([]);
+  const [visible, setVisible] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [currentGroupId, setCurrentGroupId] = useState(1);
+  const [editing, setEditing] = useState(false);
+  const [groupPanelExpanded, setGroupPanelExpanded] = useState(true);
+  const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
+  const [disconnectedModalVisible, setDisconnectedModalVisible] =
+    useState(false);
 
-const inter = Inter({ subsets: ['latin'] })
+  const _getGroups = async () => {
+    const result = await getGroups();
+    if (result.error === 0) {
+      setGroups(result.data);
+    }
+  };
 
-export default function Home() {
+  const _getGroupItems = async (groupId: number) => {
+    const result = await getGroupItems(groupId);
+    if (result.error === 0) {
+      setGroupItems(result.data);
+    }
+  };
+
+  useEffect(() => {
+    _getGroups();
+  }, []);
+
+  useEffect(() => {
+    setDisconnectedModalVisible(!serverAlive);
+  }, [serverAlive]);
+
+  useEffect(() => {
+    _getGroupItems(currentGroupId);
+  }, [currentGroupId]);
+
+  const onClose = () => {
+    setVisible(false);
+  };
+
+  const createGroupHandler = async () => {
+    let result = await addGroup(groupName);
+    if (result.error === 0) {
+      _getGroups();
+    }
+    setVisible(false);
+  };
+
+  const renderModal = () => {
+    return (
+      <Modal
+        closeButton
+        aria-labelledby="modal-title"
+        open={visible}
+        onClose={onClose}
+      >
+        <Modal.Header>
+          <Text id="modal-title" size={18}>
+            Create a new group
+          </Text>
+        </Modal.Header>
+        <Modal.Body>
+          <Input
+            onChange={(e) => {
+              setGroupName(e.target.value);
+            }}
+            clearable
+            bordered
+            fullWidth
+            color="primary"
+            size="lg"
+            placeholder="Group Name"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button auto flat color="error" onPress={onClose}>
+            Close
+          </Button>
+          <Button auto onPress={createGroupHandler}>
+            Create
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
+  const emptyGroup = () => {
+    return (
+      <Card
+        isPressable
+        isHoverable
+        onClick={() => {
+          setVisible(true);
+        }}
+        variant="bordered"
+        css={{
+          minHeight: "500px",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        <Card.Body>
+          <Text>Click here to add your first group</Text>
+        </Card.Body>
+      </Card>
+    );
+  };
+
+  const renderShutdownModal = () => {
+    return (
+      <Modal
+        closeButton
+        aria-labelledby="modal-title"
+        open={shutdownModalVisible}
+        onClose={() => {
+          setShutdownModalVisible(false);
+        }}
+      >
+        <Modal.Header>
+          <Text id="modal-title" size={18}>
+            Shut down your computer?
+          </Text>
+        </Modal.Header>
+        <Modal.Footer>
+          <Button
+            auto
+            flat
+            color="error"
+            onPress={() => {
+              setShutdownModalVisible(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            auto
+            onPress={() => {
+              shutdown();
+            }}
+          >
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
+  const renderDisconnectedModal = () => {
+    return (
+      <Modal
+        aria-labelledby="modal-title"
+        preventClose
+        blur
+        open={disconnectedModalVisible}
+        onClose={() => {
+          setDisconnectedModalVisible(false);
+        }}
+      >
+        <Modal.Header>
+          <DesktopAccessDisabledIcon sx={{ fontSize: 20, marginRight: 0 }} />
+          <Text id="modal-title" size={18} style={{ marginLeft: 5 }}>
+            Disconnected
+          </Text>
+        </Modal.Header>
+        <Modal.Body>
+          <Text>Please restart Project Hub server and refresh the page.</Text>
+        </Modal.Body>
+      </Modal>
+    );
+  };
+
   return (
-    <>
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column"
+      }}
+    >
       <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
+        <title>Project Hub</title>
+        <meta name="description" content="Project Hub Frontend" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+      <ProjectHubHeader
+        setEditing={setEditing}
+        editing={editing}
+        setShutdownModalVisible={setShutdownModalVisible}
+        socketMessage={socketMessage}
+        socket={socket}
+        groupPanelExpanded={groupPanelExpanded}
+        setGroupPanelExpanded={setGroupPanelExpanded}
+      />
+      <Grid
+        container
+        direction="row"
+        style={{
+          flex: 1,
+          marginTop: 10,
+          marginBottom: 24,
+          paddingLeft: 24,
+          paddingRight: 24
+        }}
+      >
+        {groups.length > 0 ? (
+          <>
+            <Collapse
+              sx={{
+                justifyContent: "center"
+              }}
+              in={groupPanelExpanded}
+              orientation="horizontal"
             >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
+              <GroupPanel
+                editing={editing}
+                groups={groups}
+                setGroupItems={setGroupItems}
+                getGroups={_getGroups}
+                setCurrentGroupId={setCurrentGroupId}
+                setGroupPanelExpanded={setGroupPanelExpanded}
+                groupPanelExpanded={groupPanelExpanded}
+                showAddGroupModal={() => {
+                  setVisible(true);
+                }}
               />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-    </>
-  )
+            </Collapse>
+            <Grid xs item container marginLeft={groupPanelExpanded ? 1 : 0}>
+              <ControlPanel
+                editing={editing}
+                groupItems={groupItems}
+                getGroups={_getGroups}
+                getGroupItems={_getGroupItems}
+                currentGroupId={currentGroupId}
+              />
+            </Grid>
+          </>
+        ) : (
+          emptyGroup()
+        )}
+      </Grid>
+      {renderModal()}
+      {renderShutdownModal()}
+      {renderDisconnectedModal()}
+    </div>
+  );
 }

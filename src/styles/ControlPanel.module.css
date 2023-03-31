@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 5pt;
+  margin: 5px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  flex: 1;
+}
+/*Make button a square, each row has 5 buttons*/
+.button {
+  width: calc(20% - 10px);
+  aspect-ratio: 1/1;
+  border-radius: 5pt;
+  margin: 5px;
+  background-color: rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.emptyGroupContainer {
+  display: flex;
+  border-radius: 5pt;
+  margin: 5px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
