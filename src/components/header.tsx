@@ -18,7 +18,8 @@ import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { Stack, Slider } from "@mui/material";
 import { getVolume, setVolume } from "@/modules/SystemControlModule";
-
+import EditIcon from "@mui/icons-material/Edit";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import WebSocket from "ws";
 export default function Header({
@@ -28,7 +29,8 @@ export default function Header({
   socketMessage,
   socket,
   groupPanelExpanded,
-  setGroupPanelExpanded
+  setGroupPanelExpanded,
+  setRestartModalVisible
 }: {
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
   editing: boolean;
@@ -37,6 +39,7 @@ export default function Header({
   socket: WebSocket;
   groupPanelExpanded: boolean;
   setGroupPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  setRestartModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [displayTime, setDisplayTime] = React.useState<string>("");
   const [currentVolume, setCurrentVolume] = React.useState<number>(0);
@@ -220,15 +223,31 @@ export default function Header({
                 case "shutdown":
                   setShutdownModalVisible(true);
                   break;
+                case "restart":
+                  setRestartModalVisible(true);
+                  break;
                 default:
                   break;
               }
             }}
           >
             <Dropdown.Item key="edit" color={editing ? "success" : "primary"}>
-              {editing ? "DONE" : "EDIT"}
+              <Row align="center">
+                <EditIcon />
+                <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
+                  {editing ? "DONE" : "EDIT"}
+                </Text>
+              </Row>
             </Dropdown.Item>
-            <Dropdown.Item withDivider key="shutdown" color={"error"}>
+            <Dropdown.Item withDivider key="restart" color={"warning"}>
+              <Row align="center">
+                <RestartAltIcon />
+                <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
+                  Restart
+                </Text>
+              </Row>
+            </Dropdown.Item>
+            <Dropdown.Item key="shutdown" color={"error"}>
               <Row align="center">
                 <PowerSettingsNewIcon />
                 <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>

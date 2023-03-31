@@ -11,9 +11,10 @@ import {
 } from "@/modules/ControlPanelModule";
 import { Modal, Text, Input, Button, Card } from "@nextui-org/react";
 import { Grid, Collapse } from "@mui/material";
-import { shutdown } from "@/modules/SystemControlModule";
+import { shutdown, restart } from "@/modules/SystemControlModule";
 import { useRouter } from "next/router";
 import DesktopAccessDisabledIcon from "@mui/icons-material/DesktopAccessDisabled";
+
 export default function Home({ socketMessage, socket, serverAlive }: any) {
   const router = useRouter();
   const query = router.query;
@@ -25,6 +26,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   const [editing, setEditing] = useState(false);
   const [groupPanelExpanded, setGroupPanelExpanded] = useState(true);
   const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
+  const [restartModalVisible, setRestartModalVisible] = useState(false);
   const [disconnectedModalVisible, setDisconnectedModalVisible] =
     useState(false);
 
@@ -165,6 +167,45 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     );
   };
 
+  const renderRestartModal = () => {
+    return (
+      <Modal
+        closeButton
+        aria-labelledby="restart-modal"
+        open={restartModalVisible}
+        onClose={() => {
+          setRestartModalVisible(false);
+        }}
+      >
+        <Modal.Header>
+          <Text id="modal-title" size={18}>
+            Restart your computer?
+          </Text>
+        </Modal.Header>
+        <Modal.Footer>
+          <Button
+            auto
+            flat
+            color="error"
+            onPress={() => {
+              setRestartModalVisible(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            auto
+            onPress={() => {
+              restart();
+            }}
+          >
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
   const renderDisconnectedModal = () => {
     return (
       <Modal
@@ -212,6 +253,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
         socket={socket}
         groupPanelExpanded={groupPanelExpanded}
         setGroupPanelExpanded={setGroupPanelExpanded}
+        setRestartModalVisible={setRestartModalVisible}
       />
       <Grid
         container
@@ -262,6 +304,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
       </Grid>
       {renderModal()}
       {renderShutdownModal()}
+      {renderRestartModal()}
       {renderDisconnectedModal()}
     </div>
   );
