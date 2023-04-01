@@ -18,8 +18,30 @@ export default function App({ Component, pageProps }: AppProps) {
   const [socketMessage, setSocketMessage]: any = useState(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [serverAlive, setServerAlive] = useState<boolean>(true);
-  const serverAliveCheckTimeout = useRef<any>(null);
+  const serverAliveCheckInterval = useRef<any>(null);
+
+  const serverHealthCheck = async () => {
+    try {
+      let host = process.env.NEXT_PUBLIC_HOST || window.location.origin;
+      let response = await fetch(host + "/serverHealthCheck");
+      if (response.status === 200) {
+        setServerAlive(true);
+      } else {
+        setServerAlive(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setServerAlive(false);
+    }
+  };
+
   useEffect(() => {
+    serverHealthCheck();
+    // Set server health check interval
+    serverAliveCheckInterval.current = setInterval(() => {
+      serverHealthCheck();
+    }, 5000);
+
     if (typeof window !== "undefined") {
       let wsHost = "ws://" + window.location.hostname + ":8080";
       if (wsHost) {
@@ -27,26 +49,19 @@ export default function App({ Component, pageProps }: AppProps) {
         setSocket(_socket);
       }
     }
+
+    return () => {
+      clearInterval(serverAliveCheckInterval.current);
+    };
   }, []);
 
   useEffect(() => {
-    // Set up a timer to check if the server is alive
-    serverAliveCheckTimeout.current = setTimeout(() => {
-      setServerAlive(false);
-    }, 6000);
     if (socket) {
       socket.addEventListener("open", (event) => {
         if (socket) {
           socket.addEventListener("message", (event) => {
             // If get server's ping, set server alive to true
             if (event.data === "ping") {
-              setServerAlive(true);
-              // Clear the timer
-              clearTimeout(serverAliveCheckTimeout.current);
-              // Set up a new timer
-              serverAliveCheckTimeout.current = setTimeout(() => {
-                setServerAlive(false);
-              }, 6000);
             } else {
               setSocketMessage(JSON.parse(event.data));
             }
