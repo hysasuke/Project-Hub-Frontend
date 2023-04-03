@@ -17,6 +17,7 @@ import {
   deleteGroupItem,
   executeGroupItem,
   renameGroupItem,
+  reorderGroupItems,
   requestFileSelection
 } from "@/modules/ControlPanelModule";
 import AddIcon from "@mui/icons-material/Add";
@@ -46,10 +47,24 @@ export default function ControlPanel(props: any) {
   const [modifiers, setModifiers] = React.useState<Array<String>>([]);
   const [pressedKey, setPressedKey] = React.useState<String>("");
   const [recordingKeyboard, setRecordingKeyboard] = React.useState(false);
+  const [currentDraggingID, setCurrentDraggingID] = React.useState(-1);
+  const [groupItems, setGroupItems] = React.useState<any>([]);
   const selectedGroupItemType = React.useMemo(
     () => Array.from(groupItemType).join(", ").replaceAll("_", " "),
     [groupItemType]
   );
+
+  useEffect(() => {
+    if (props.groupItems && props.groupItems.length > 0) {
+      setGroupItems(props.groupItems);
+    }
+  }, [props.groupItems]);
+
+  useEffect(() => {
+    if (!props.editing) {
+      setCurrentDraggingID(-1);
+    }
+  }, [props.editing]);
 
   const handleQuery = () => {
     if (query.action) {
@@ -139,12 +154,42 @@ export default function ControlPanel(props: any) {
     );
   };
 
+  const swapGroupItem = (from: number, to: number) => {
+    if (from === to) return;
+    if (from < 0 || to < 0) return;
+    let fromGroupItemIndex = groupItems.findIndex(
+      (groupItem: any) => groupItem.id === from
+    );
+    let toGroupItemIndex = groupItems.findIndex(
+      (groupItem: any) => groupItem.id === to
+    );
+    if (fromGroupItemIndex === -1 || toGroupItemIndex === -1) return;
+
+    let newGroupItems = [...groupItems];
+    let temp = newGroupItems[fromGroupItemIndex];
+    newGroupItems[fromGroupItemIndex] = newGroupItems[toGroupItemIndex];
+    newGroupItems[toGroupItemIndex] = temp;
+    setGroupItems(newGroupItems);
+  };
+
   const renderGroupItems = () => {
     return (
       <Grid.Container direction="row" wrap="wrap" gap={1}>
-        {props.groupItems.map((groupItem: any, index: number) => {
+        {groupItems.map((groupItem: any, index: number) => {
           return (
             <Grid
+              draggable={props.editing}
+              onDragStart={(e) => {
+                setCurrentDraggingID(groupItem.id);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                swapGroupItem(currentDraggingID, groupItem.id);
+              }}
+              onDragEnd={async (e) => {
+                setCurrentDraggingID(-1);
+                await reorderGroupItems(groupItems);
+              }}
               xs={4}
               sm={2}
               md={1}
@@ -152,7 +197,8 @@ export default function ControlPanel(props: any) {
               style={{
                 aspectRatio: "1/1",
                 display: "flex",
-                overflow: "hidden"
+                overflow: "hidden",
+                opacity: currentDraggingID === groupItem.id ? 0.5 : 1
               }}
             >
               <ButtonBase
@@ -282,7 +328,6 @@ export default function ControlPanel(props: any) {
           selectionMode="single"
           selectedKeys={groupItemType}
           onSelectionChange={(keys: any) => {
-            alert(isMobile);
             // Check if the user is using mobile devices, then show the alert message to tell user to set the keybinding on desktop
             if (keys.has("keybind") && isMobile) {
               alert("Please set the keybinding on desktop");

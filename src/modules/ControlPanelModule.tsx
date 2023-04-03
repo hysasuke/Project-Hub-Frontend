@@ -104,3 +104,15 @@ export async function renameGroupItem(id: number, name: string) {
   const data = await res.json();
   return data;
 }
+
+export async function reorderGroupItems(groupItems: any[]) {
+  const res = await fetch(`${host}/groupItem/reorder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ groupItems })
+  });
+  const data = await res.json();
+  return data;
+}
