@@ -25,6 +25,7 @@ import { Button, ButtonBase, IconButton } from "@mui/material";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import KeyboardIcon from "@mui/icons-material/Keyboard";
+import Keypad from "./Keypad/keypad";
 import { useRouter } from "next/router";
 
 let host = process.env.NEXT_PUBLIC_HOST;
@@ -55,7 +56,7 @@ export default function ControlPanel(props: any) {
   );
 
   useEffect(() => {
-    if (props.groupItems && props.groupItems.length > 0) {
+    if (props.groupItems) {
       setGroupItems(props.groupItems);
     }
   }, [props.groupItems]);
@@ -627,15 +628,27 @@ export default function ControlPanel(props: any) {
       </Modal>
     );
   };
+
+  const renderControlPanelContent = () => {
+    switch (props.currentGroup.type) {
+      case "group":
+        return renderGroupItems();
+      case "keypad":
+        return <Keypad socket={props.socket} />;
+      default:
+        return null;
+    }
+  };
   return (
     <>
       <Card
         variant="bordered"
         css={{
-          minHeight: "500px"
+          minHeight: "500px",
+          flex: 1
         }}
       >
-        {renderGroupItems()}
+        {renderControlPanelContent()}
       </Card>
       {renderCreateModal()}
       {renderWaitingForFileModal()}

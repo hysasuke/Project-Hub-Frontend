@@ -16,7 +16,7 @@ const darkTheme = createTheme({
 
 export default function App({ Component, pageProps }: AppProps) {
   const [socketMessage, setSocketMessage]: any = useState(null);
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>();
   const [serverAlive, setServerAlive] = useState<boolean>(true);
   const serverAliveCheckInterval = useRef<any>(null);
 

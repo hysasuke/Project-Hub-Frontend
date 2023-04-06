@@ -6,7 +6,11 @@ import {
   Row,
   Text,
   Tooltip,
-  Popover
+  Popover,
+  Button,
+  useTheme,
+  Container,
+  Grid
 } from "@nextui-org/react";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { IconButton } from "@mui/material";
@@ -22,6 +26,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import WebSocket from "ws";
+
+import AddIcon from "@mui/icons-material/Add";
 export default function Header({
   setEditing,
   editing,
@@ -30,7 +36,12 @@ export default function Header({
   socket,
   groupPanelExpanded,
   setGroupPanelExpanded,
-  setRestartModalVisible
+  setRestartModalVisible,
+  groups,
+  currentGroupId,
+  setCurrentGroup,
+  setCurrentGroupId,
+  setVisible
 }: {
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
   editing: boolean;
@@ -40,11 +51,19 @@ export default function Header({
   groupPanelExpanded: boolean;
   setGroupPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   setRestartModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  groups: any[];
+  currentGroupId: number;
+  setCurrentGroup: React.Dispatch<React.SetStateAction<any>>;
+  setCurrentGroupId: React.Dispatch<React.SetStateAction<number>>;
+  setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const theme = useTheme();
   const [displayTime, setDisplayTime] = React.useState<string>("");
   const [currentVolume, setCurrentVolume] = React.useState<number>(0);
   const [toVolume, setToVolume] = React.useState<number>(0);
   const [muted, setMuted] = React.useState<boolean>(false);
+
+  const toggleRef = React.useRef<any>(null);
   useAnimationFrame(() => {
     setDisplayTime(clock());
   });
@@ -158,6 +177,7 @@ export default function Header({
 
   return (
     <Navbar isBordered variant={"floating"} maxWidth="fluid">
+      <Navbar.Toggle ref={toggleRef} showIn="xs" />
       <Navbar.Brand
         css={{
           "@xs": {
@@ -165,18 +185,27 @@ export default function Header({
           }
         }}
       >
-        <IconButton
-          onClick={() => {
-            setGroupPanelExpanded(!groupPanelExpanded);
+        <Container
+          css={{
+            display: "none",
+            "@xs": {
+              display: "inline"
+            }
           }}
         >
-          <MenuOpenIcon
-            style={{
-              color: "white",
-              transform: `rotate(${groupPanelExpanded ? "0deg" : "180deg"})`
+          <IconButton
+            onClick={() => {
+              setGroupPanelExpanded(!groupPanelExpanded);
             }}
-          />
-        </IconButton>
+          >
+            <MenuOpenIcon
+              style={{
+                color: "white",
+                transform: `rotate(${groupPanelExpanded ? "0deg" : "180deg"})`
+              }}
+            />
+          </IconButton>
+        </Container>
         <Text b color="inherit" hideIn="xs">
           Project Hub
         </Text>
@@ -258,6 +287,47 @@ export default function Header({
           </Dropdown.Menu>
         </Dropdown>
       </Navbar.Content>
+      <Navbar.Collapse disableAnimation={true}>
+        {groups.map((item, index) => (
+          <Navbar.CollapseItem key={"headerGroupItem:" + item.id}>
+            <Button
+              color={currentGroupId === item.id ? "primary" : "secondary"}
+              onPress={() => {
+                if (toggleRef.current) {
+                  toggleRef.current?.click();
+                }
+                setCurrentGroupId(item.id);
+                setCurrentGroup(item);
+              }}
+              ghost
+              css={{
+                minWidth: "100%"
+              }}
+              href="#"
+            >
+              {item.name}
+            </Button>
+          </Navbar.CollapseItem>
+        ))}
+        <Navbar.CollapseItem>
+          <Button
+            onPress={() => {
+              if (toggleRef.current) {
+                toggleRef.current?.click();
+              }
+              setVisible(true);
+            }}
+            css={{
+              minWidth: "100%",
+              borderColor: "grey",
+              backgroundColor: "transparent"
+            }}
+            ghost
+          >
+            <AddIcon style={{ color: "gray" }} />
+          </Button>
+        </Navbar.CollapseItem>
+      </Navbar.Collapse>
     </Navbar>
   );
 }

@@ -30,6 +30,7 @@ export default function GroupPanel(props: any) {
     let id = group.id;
     setCurrentGroupId(id);
     props.setCurrentGroupId(id);
+    props.setCurrentGroup(group);
   };
 
   const renderGroups = () => {

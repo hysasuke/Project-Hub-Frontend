@@ -9,13 +9,13 @@ export async function getGroups() {
   return groups;
 }
 
-export async function addGroup(groupName: string) {
+export async function addGroup(groupName: string, type: string) {
   const res = await fetch(`${host}/group`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ name: groupName })
+    body: JSON.stringify({ name: groupName, type: type })
   });
   const data = await res.json();
   return data;

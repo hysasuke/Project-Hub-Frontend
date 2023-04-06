@@ -3,13 +3,21 @@ import { Inter } from "next/font/google";
 import ProjectHubHeader from "@/components/header";
 import ControlPanel from "@/components/controlPanel";
 import GroupPanel from "@/components/groupPanel";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   addGroup,
   getGroupItems,
   getGroups
 } from "@/modules/ControlPanelModule";
-import { Modal, Text, Input, Button, Card } from "@nextui-org/react";
+import {
+  Modal,
+  Text,
+  Input,
+  Button,
+  Card,
+  Dropdown,
+  Grid as NextGrid
+} from "@nextui-org/react";
 import { Grid, Collapse } from "@mui/material";
 import { shutdown, restart } from "@/modules/SystemControlModule";
 import { useRouter } from "next/router";
@@ -23,17 +31,24 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   const [visible, setVisible] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(1);
+  const [currentGroup, setCurrentGroup] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [groupPanelExpanded, setGroupPanelExpanded] = useState(true);
   const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
   const [restartModalVisible, setRestartModalVisible] = useState(false);
   const [disconnectedModalVisible, setDisconnectedModalVisible] =
     useState(false);
+  const [groupType, setGroupType] = useState(new Set(["group"]));
+  const selectedGroupType = useMemo(
+    () => Array.from(groupType).join(", ").replaceAll("_", " "),
+    [groupType]
+  );
 
   const _getGroups = async () => {
     const result = await getGroups();
     if (result.error === 0) {
       setGroups(result.data);
+      setCurrentGroup(result.data[0]);
     }
   };
 
@@ -58,14 +73,39 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
 
   const onClose = () => {
     setVisible(false);
+    setGroupType(new Set(["group"]));
   };
 
   const createGroupHandler = async () => {
-    let result = await addGroup(groupName);
+    let result = await addGroup(groupName, selectedGroupType);
     if (result.error === 0) {
       _getGroups();
     }
     setVisible(false);
+  };
+
+  const renderGroupTypeSelection = () => {
+    return (
+      <Dropdown>
+        <Dropdown.Button flat color="primary" css={{ tt: "capitalize" }}>
+          {selectedGroupType}
+        </Dropdown.Button>
+        <Dropdown.Menu
+          aria-label="Single selection actions"
+          color="primary"
+          disallowEmptySelection
+          selectionMode="single"
+          selectedKeys={groupType}
+          onSelectionChange={(keys: any) => {
+            // Check if the user is using mobile devices, then show the alert message to tell user to set the keybinding on desktop
+            setGroupType(keys as Set<string>);
+          }}
+        >
+          <Dropdown.Item key="group">Group</Dropdown.Item>
+          <Dropdown.Item key="keypad">Keypad</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+    );
   };
 
   const renderModal = () => {
@@ -82,6 +122,14 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
           </Text>
         </Modal.Header>
         <Modal.Body>
+          <Grid container alignItems={"center"}>
+            <Grid item xs={6} md={6} container justifyContent={"center"}>
+              <Text>Type</Text>
+            </Grid>
+            <Grid item xs={6} md={6}>
+              {renderGroupTypeSelection()}
+            </Grid>
+          </Grid>
           <Input
             onChange={(e) => {
               setGroupName(e.target.value);
@@ -231,13 +279,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
+    <>
       <Head>
         <title>Project Hub</title>
         <meta name="description" content="Project Hub Frontend" />
@@ -254,47 +296,67 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
         groupPanelExpanded={groupPanelExpanded}
         setGroupPanelExpanded={setGroupPanelExpanded}
         setRestartModalVisible={setRestartModalVisible}
+        groups={groups}
+        currentGroupId={currentGroupId}
+        setCurrentGroupId={setCurrentGroupId}
+        setCurrentGroup={setCurrentGroup}
+        setVisible={setVisible}
       />
       <Grid
         container
-        direction="row"
         style={{
-          flex: 1,
+          display: "flex",
           marginTop: 10,
-          marginBottom: 24,
           paddingLeft: 24,
-          paddingRight: 24
+          paddingRight: 24,
+          marginBottom: 20,
+          flex: 1
         }}
       >
         {groups.length > 0 ? (
           <>
-            <Collapse
-              sx={{
-                justifyContent: "center"
+            <NextGrid
+              css={{
+                height: "100%",
+                display: "none",
+                marginRight: groupPanelExpanded ? 10 : 0,
+                "@xs": {
+                  display: "inline"
+                }
               }}
-              in={groupPanelExpanded}
-              orientation="horizontal"
             >
-              <GroupPanel
-                editing={editing}
-                groups={groups}
-                setGroupItems={setGroupItems}
-                getGroups={_getGroups}
-                setCurrentGroupId={setCurrentGroupId}
-                setGroupPanelExpanded={setGroupPanelExpanded}
-                groupPanelExpanded={groupPanelExpanded}
-                showAddGroupModal={() => {
-                  setVisible(true);
+              <Collapse
+                sx={{
+                  justifyContent: "center",
+                  height: "100%"
                 }}
-              />
-            </Collapse>
-            <Grid xs item container marginLeft={groupPanelExpanded ? 1 : 0}>
+                in={groupPanelExpanded}
+                orientation="horizontal"
+              >
+                <GroupPanel
+                  editing={editing}
+                  groups={groups}
+                  setGroupItems={setGroupItems}
+                  getGroups={_getGroups}
+                  setCurrentGroupId={setCurrentGroupId}
+                  setCurrentGroup={setCurrentGroup}
+                  setGroupPanelExpanded={setGroupPanelExpanded}
+                  groupPanelExpanded={groupPanelExpanded}
+                  showAddGroupModal={() => {
+                    setVisible(true);
+                  }}
+                />
+              </Collapse>
+            </NextGrid>
+            <Grid xs item container marginLeft={0}>
               <ControlPanel
                 editing={editing}
                 groupItems={groupItems}
+                currentGroup={currentGroup}
                 getGroups={_getGroups}
                 getGroupItems={_getGroupItems}
                 currentGroupId={currentGroupId}
+                socket={socket}
               />
             </Grid>
           </>
@@ -306,6 +368,6 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
       {renderShutdownModal()}
       {renderRestartModal()}
       {renderDisconnectedModal()}
-    </div>
+    </>
   );
 }
