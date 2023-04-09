@@ -31,7 +31,8 @@ export async function createGroupItem({
   type,
   selectedFile,
   url,
-  keybind
+  keybind,
+  icon
 }: {
   groupId: number;
   name: string;
@@ -39,13 +40,14 @@ export async function createGroupItem({
   selectedFile: any;
   url: string;
   keybind: string;
+  icon?: any;
 }) {
   const data = await fetch(`${host}/groupItem/${groupId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ name, type, selectedFile, url, keybind })
+    body: JSON.stringify({ name, type, selectedFile, url, keybind, icon })
   });
   return data;
 }
@@ -103,6 +105,16 @@ export async function reorderGroupItems(groupItems: any[]) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ groupItems })
+  });
+  return data;
+}
+
+export async function uploadIcon(selectedIcon: any) {
+  const formData = new FormData();
+  formData.append("file", selectedIcon);
+  const data = await fetch(`${host}/upload/icon`, {
+    method: "POST",
+    body: formData
   });
   return data;
 }

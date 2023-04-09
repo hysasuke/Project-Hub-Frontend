@@ -18,7 +18,8 @@ import {
   executeGroupItem,
   renameGroupItem,
   reorderGroupItems,
-  requestFileSelection
+  requestFileSelection,
+  uploadIcon
 } from "@/modules/ControlPanelModule";
 import AddIcon from "@mui/icons-material/Add";
 import { Button, ButtonBase, IconButton } from "@mui/material";
@@ -50,6 +51,7 @@ export default function ControlPanel(props: any) {
   const [recordingKeyboard, setRecordingKeyboard] = React.useState(false);
   const [currentDraggingID, setCurrentDraggingID] = React.useState(-1);
   const [groupItems, setGroupItems] = React.useState<any>([]);
+  const [selectedIcon, setSelectedIcon] = React.useState<any>(null);
   const selectedGroupItemType = React.useMemo(
     () => Array.from(groupItemType).join(", ").replaceAll("_", " "),
     [groupItemType]
@@ -94,6 +96,7 @@ export default function ControlPanel(props: any) {
       setWaitingForFile(false);
     } else if (result.error === 0) {
       setSelectedFile(result.data);
+      setSelectedIcon(result.data);
       setWaitingForFile(false);
     }
   };
@@ -299,16 +302,27 @@ export default function ControlPanel(props: any) {
     setGroupItemType(new Set(["file"]));
     setModifiers([]);
     setPressedKey("");
+    setSelectedIcon(null);
   };
 
   const createGroupItemHandler = async () => {
+    let isIconFile = selectedIcon instanceof File;
+    let uploadIconResult;
+    if (isIconFile) {
+      uploadIconResult = await uploadIcon(selectedIcon);
+      if (uploadIconResult.error !== 0) {
+        props.setError(uploadIconResult);
+        return;
+      }
+    }
     const result = await createGroupItem({
       groupId: props.currentGroupId,
       name: groupItemName,
       url: groupItemUrl,
       type: groupItemType.values().next().value,
       selectedFile: selectedFile,
-      keybind: modifiers.join("+") + ":" + pressedKey
+      keybind: modifiers.join("+") + ":" + pressedKey,
+      icon: isIconFile ? uploadIconResult.data : undefined
     });
     if (result.error === 0) {
       createModalOnClose();
@@ -372,6 +386,46 @@ export default function ControlPanel(props: any) {
     }
   };
 
+  const renderSelectedIcon = () => {
+    if (!selectedIcon) {
+      return (
+        <Button variant="text" component="label" color="primary">
+          Upload Icon
+          <input
+            type="file"
+            hidden
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                console.log(e.target.files[0]);
+                setSelectedIcon(e.target.files[0]);
+              }
+            }}
+          />
+        </Button>
+      );
+    } else {
+      let isFile = selectedIcon instanceof File;
+      let displayingIcon =
+        selectedIcon && isFile
+          ? URL.createObjectURL(selectedIcon)
+          : `${host}/icons/${selectedIcon.icon}`;
+      return (
+        <Row align="center" justify="center">
+          <Image src={displayingIcon} width={50} height={50} />
+          <IconButton
+            style={{ color: "white" }}
+            size="small"
+            onClick={() => {
+              setSelectedIcon(null);
+            }}
+          >
+            <RemoveCircleOutlineIcon fontSize="inherit" />
+          </IconButton>
+        </Row>
+      );
+    }
+  };
+
   const renderCreateModal = () => {
     return (
       <Modal
@@ -419,8 +473,17 @@ export default function ControlPanel(props: any) {
               />
             </Grid>
           </Grid.Container>
+
           {renderFileAndUrlModal()}
           {renderKeybindModal()}
+          <Grid.Container alignItems="center" gap={2}>
+            <Grid xs={4} justify="flex-end">
+              <Text>Icon</Text>
+            </Grid>
+            <Grid xs={8} justify="center">
+              {renderSelectedIcon()}
+            </Grid>
+          </Grid.Container>
         </Modal.Body>
         <Modal.Footer>
           <Button color="secondary" onClick={createModalOnClose}>
