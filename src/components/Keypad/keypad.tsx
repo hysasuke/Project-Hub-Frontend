@@ -48,6 +48,35 @@ export default function keypad({ socket }: { socket: any }) {
     }
   ];
   const Button = (props: any) => {
+    function addOpacityToColor(color: string, opacity: number) {
+      if (!color || color === undefined) {
+        return "rgba(255,255,255,0.2)";
+      }
+      // Check if color is in hex format
+      if (color[0] === "#") {
+        // Convert hex color to RGB format
+        const hex = color.substring(1);
+        const rgb = parseInt(hex, 16);
+        const red = (rgb >> 16) & 0xff;
+        const green = (rgb >> 8) & 0xff;
+        const blue = rgb & 0xff;
+
+        // Return RGB color with opacity
+        return `rgba(${red}, ${green}, ${blue}, ${opacity})`;
+      }
+
+      // Check if color is in RGB format
+      if (color.startsWith("rgb")) {
+        // Split RGB values into an array
+        const rgbArray: any = color.match(/\d+/g);
+
+        // Return RGB color with opacity
+        return `rgba(${rgbArray[0]}, ${rgbArray[1]}, ${rgbArray[2]}, ${opacity})`;
+      }
+
+      // If color format is not recognized, return the original color
+      return color;
+    }
     return (
       <MUIButton
         {...props}
@@ -55,10 +84,9 @@ export default function keypad({ socket }: { socket: any }) {
           width: "100%",
           height: "100%",
           borderRadius: 15,
-          backgroundColor: props.backgroundColor
-            ? props.backgroundColor
-            : "transparent",
-          border: "1px solid #BBBBBB"
+          backgroundColor: addOpacityToColor(props.backgroundColor, 0.8),
+          // border: "1px solid #BBBBBB",
+          backdropFilter: "blur(5px)"
         }}
       />
     );
@@ -77,7 +105,7 @@ export default function keypad({ socket }: { socket: any }) {
   };
 
   const buttons = buttonLabels.map((key) => (
-    <Grid xs={key.label === "0" ? 8 : 4} key={key.label}>
+    <Grid xs={key.label === "0" ? 8 : 4} key={key.label} item>
       <Button
         variant="contained"
         onClick={() => {
@@ -102,14 +130,14 @@ export default function keypad({ socket }: { socket: any }) {
       }
     ];
     return (
-      <Grid container xs direction="column">
+      <Grid container xs direction="column" item>
         {buttons.map((key) => {
           return (
-            <Grid xs key={key.keyName}>
+            <Grid xs key={key.keyName} item>
               <Button
                 variant="contained"
                 backgroundColor={
-                  key.backgroundColor ? key.backgroundColor : "transparent"
+                  key.backgroundColor ? key.backgroundColor : undefined
                 }
                 onClick={() => {
                   handleButtonOnClick(key);
@@ -147,11 +175,11 @@ export default function keypad({ socket }: { socket: any }) {
       <Grid container item xs={1}>
         {buttons.map((key) => {
           return (
-            <Grid xs={3} key={key.keyName}>
+            <Grid xs={3} key={key.keyName} item>
               <Button
                 variant="contained"
                 backgroundColor={
-                  key.backgroundColor ? key.backgroundColor : "transparent"
+                  key.backgroundColor ? key.backgroundColor : undefined
                 }
                 onClick={() => {
                   handleButtonOnClick(key);
@@ -167,7 +195,7 @@ export default function keypad({ socket }: { socket: any }) {
   };
 
   return (
-    <Grid container xs={12} direction="column">
+    <Grid container item xs={12} direction="column">
       {renderTopButtons()}
       <Grid container item xs direction="row">
         <Grid container item xs={9}>

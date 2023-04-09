@@ -403,7 +403,7 @@ export default function ControlPanel(props: any) {
             </Grid>
             <Grid xs={8} justify="center">
               <Input
-                value={groupItemName}
+                defaultValue={groupItemName}
                 onChange={(e) => {
                   if (!recordingKeyboard) {
                     setGroupItemName(e.target.value);
