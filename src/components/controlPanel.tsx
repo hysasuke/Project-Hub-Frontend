@@ -313,6 +313,8 @@ export default function ControlPanel(props: any) {
     if (result.error === 0) {
       createModalOnClose();
       props.getGroupItems(props.currentGroupId);
+    } else {
+      props.setError(result);
     }
   };
 

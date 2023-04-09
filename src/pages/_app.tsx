@@ -28,10 +28,12 @@ export default function App({ Component, pageProps }: AppProps) {
         setServerAlive(true);
       } else {
         setServerAlive(false);
+        clearInterval(serverAliveCheckInterval.current);
       }
     } catch (error) {
       console.log(error);
       setServerAlive(false);
+      clearInterval(serverAliveCheckInterval.current);
     }
   };
 

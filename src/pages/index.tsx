@@ -16,7 +16,8 @@ import {
   Button,
   Card,
   Dropdown,
-  Grid as NextGrid
+  Grid as NextGrid,
+  Row
 } from "@nextui-org/react";
 import { Grid, Collapse } from "@mui/material";
 import { shutdown, restart } from "@/modules/SystemControlModule";
@@ -39,6 +40,11 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   const [disconnectedModalVisible, setDisconnectedModalVisible] =
     useState(false);
   const [groupType, setGroupType] = useState(new Set(["group"]));
+  const [error, setError] = useState<null | {
+    error: boolean;
+    data: any;
+    message: string;
+  }>(null);
   const selectedGroupType = useMemo(
     () => Array.from(groupType).join(", ").replaceAll("_", " "),
     [groupType]
@@ -49,6 +55,8 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     if (result.error === 0) {
       setGroups(result.data);
       setCurrentGroup(result.data[0]);
+    } else {
+      setError(result);
     }
   };
 
@@ -56,6 +64,8 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     const result = await getGroupItems(groupId);
     if (result.error === 0) {
       setGroupItems(result.data);
+    } else {
+      setError(result);
     }
   };
 
@@ -80,6 +90,8 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     let result = await addGroup(groupName, selectedGroupType);
     if (result.error === 0) {
       _getGroups();
+    } else {
+      setError(result);
     }
     setVisible(false);
   };
@@ -278,6 +290,40 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     );
   };
 
+  const renderErrorModal = () => {
+    return (
+      <Modal
+        closeButton
+        aria-labelledby="Error"
+        open={error !== null}
+        onClose={onClose}
+      >
+        <Modal.Header>
+          <Text id="error-modal-title" size={18}>
+            Error
+          </Text>
+        </Modal.Header>
+        <Modal.Body>
+          <Row justify="center">
+            <Text>{error?.message}</Text>
+          </Row>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            auto
+            flat
+            color="error"
+            onPress={() => {
+              setError(null);
+            }}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
+
   return (
     <>
       <Head>
@@ -313,7 +359,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
           flex: 1
         }}
       >
-        {groups.length > 0 ? (
+        {groups?.length > 0 ? (
           <>
             <NextGrid
               css={{
@@ -345,6 +391,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
                   showAddGroupModal={() => {
                     setVisible(true);
                   }}
+                  setError={setError}
                 />
               </Collapse>
             </NextGrid>
@@ -357,6 +404,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
                 getGroupItems={_getGroupItems}
                 currentGroupId={currentGroupId}
                 socket={socket}
+                setError={setError}
               />
             </Grid>
           </>
@@ -368,6 +416,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
       {renderShutdownModal()}
       {renderRestartModal()}
       {renderDisconnectedModal()}
+      {renderErrorModal()}
     </>
   );
 }

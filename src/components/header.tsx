@@ -288,7 +288,7 @@ export default function Header({
         </Dropdown>
       </Navbar.Content>
       <Navbar.Collapse disableAnimation={true}>
-        {groups.map((item, index) => (
+        {groups?.map((item, index) => (
           <Navbar.CollapseItem key={"headerGroupItem:" + item.id}>
             <Button
               color={currentGroupId === item.id ? "primary" : "secondary"}
