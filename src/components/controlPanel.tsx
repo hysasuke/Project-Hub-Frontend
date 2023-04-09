@@ -132,18 +132,26 @@ export default function ControlPanel(props: any) {
   }, [selectedFile]);
 
   const renderIcon = (groupItem: any) => {
-    if (groupItem.type === "keybind") {
-      return (
-        <KeyboardIcon
-          style={{ marginBottom: 10, color: "white", width: 30, height: 30 }}
-        />
-      );
-    }
     let iconSrc = "";
+    if (groupItem.type === "keybind") {
+      if (groupItem.icon) {
+        iconSrc = host + "/icons/" + groupItem.icon;
+      } else {
+        return (
+          <KeyboardIcon
+            style={{ marginBottom: 10, color: "white", width: 30, height: 30 }}
+          />
+        );
+      }
+    }
     if (groupItem.type === "file") {
       iconSrc = host + "/icons/" + groupItem.icon;
     } else if (groupItem.type === "link") {
-      iconSrc = groupItem.icon;
+      if (groupItem.icon.startsWith("http")) {
+        iconSrc = groupItem.icon;
+      } else {
+        iconSrc = host + "/icons/" + groupItem.icon;
+      }
     }
     return (
       <Image
