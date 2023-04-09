@@ -109,6 +109,17 @@ export async function reorderGroupItems(groupItems: any[]) {
   return data;
 }
 
+export async function reorderGroups(groups: any[]) {
+  const data = await fetch(`${host}/group/reorder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ groups })
+  });
+  return data;
+}
+
 export async function uploadIcon(selectedIcon: any) {
   const formData = new FormData();
   formData.append("file", selectedIcon);

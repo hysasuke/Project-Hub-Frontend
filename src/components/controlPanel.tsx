@@ -28,6 +28,7 @@ import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import KeyboardIcon from "@mui/icons-material/Keyboard";
 import Keypad from "./Keypad/keypad";
 import { useRouter } from "next/router";
+import { swapItem } from "@/utils/utils";
 
 let host = process.env.NEXT_PUBLIC_HOST;
 if (typeof window !== "undefined") {
@@ -166,24 +167,6 @@ export default function ControlPanel(props: any) {
     );
   };
 
-  const swapGroupItem = (from: number, to: number) => {
-    if (from === to) return;
-    if (from < 0 || to < 0) return;
-    let fromGroupItemIndex = groupItems.findIndex(
-      (groupItem: any) => groupItem.id === from
-    );
-    let toGroupItemIndex = groupItems.findIndex(
-      (groupItem: any) => groupItem.id === to
-    );
-    if (fromGroupItemIndex === -1 || toGroupItemIndex === -1) return;
-
-    let newGroupItems = [...groupItems];
-    let temp = newGroupItems[fromGroupItemIndex];
-    newGroupItems[fromGroupItemIndex] = newGroupItems[toGroupItemIndex];
-    newGroupItems[toGroupItemIndex] = temp;
-    setGroupItems(newGroupItems);
-  };
-
   const renderGroupItems = () => {
     return (
       <Grid.Container direction="row" wrap="wrap" gap={1}>
@@ -196,7 +179,14 @@ export default function ControlPanel(props: any) {
               }}
               onDragOver={(e) => {
                 e.preventDefault();
-                swapGroupItem(currentDraggingID, groupItem.id);
+                const { newArray, isModified } = swapItem(
+                  currentDraggingID,
+                  groupItem.id,
+                  groupItems
+                );
+                if (isModified) {
+                  setGroupItems(newArray);
+                }
               }}
               onDragEnd={async (e) => {
                 setCurrentDraggingID(-1);

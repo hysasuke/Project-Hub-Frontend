@@ -11,7 +11,8 @@ import React from "react";
 import {
   deleteGroup,
   getGroupItems,
-  renameGroup
+  renameGroup,
+  reorderGroups
 } from "@/modules/ControlPanelModule";
 import {
   IconButton,
@@ -21,22 +22,53 @@ import {
 } from "@mui/material";
 import RemoveCircle from "@mui/icons-material/RemoveCircle";
 import AddIcon from "@mui/icons-material/Add";
+import { swapItem } from "@/utils/utils";
 export default function GroupPanel(props: any) {
   const [currentGroupId, setCurrentGroupId] = React.useState(1);
   const [renameModalVisible, setRenameModalVisible] = React.useState(false);
   const [editingGroup, setEditingGroup] = React.useState<any>(null);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+  const [currentDraggingID, setCurrentDraggingID] = React.useState(-1);
+  const [groups, setGroups] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (props.groups && props.groups.length > 0) {
+      setCurrentGroupId(props.groups[0].id);
+      setGroups(props.groups);
+      props.setCurrentGroupId(props.groups[0].id);
+      props.setCurrentGroup(props.groups[0]);
+    }
+  }, [props.groups]);
+
   const handleChangeGroup = async (group: any) => {
     let id = group.id;
     setCurrentGroupId(id);
     props.setCurrentGroupId(id);
     props.setCurrentGroup(group);
   };
-
   const renderGroups = () => {
-    return props.groups.map((group: any) => {
+    return groups.map((group: any) => {
       return (
         <ButtonBase
+          draggable={props.editing}
+          onDragStart={(e) => {
+            setCurrentDraggingID(group.id);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            const { newArray, isModified } = swapItem(
+              currentDraggingID,
+              group.id,
+              groups
+            );
+            if (isModified) {
+              setGroups(newArray);
+            }
+          }}
+          onDragEnd={async (e) => {
+            setCurrentDraggingID(-1);
+            await reorderGroups(groups);
+          }}
           key={"group-" + group.id}
           onClick={() => {
             if (!props.editing) {
