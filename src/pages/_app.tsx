@@ -19,10 +19,12 @@ export default function App({ Component, pageProps }: AppProps) {
   const [socket, setSocket] = useState<WebSocket | null>();
   const [serverAlive, setServerAlive] = useState<boolean>(true);
   const serverAliveCheckInterval = useRef<any>(null);
-
   const serverHealthCheck = async () => {
     try {
-      let host = window.location.origin;
+      let host =
+        process.env.NODE_ENV === "production"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_HOST;
       let response = await fetch(host + "/serverHealthCheck");
       if (response.status === 200) {
         setServerAlive(true);

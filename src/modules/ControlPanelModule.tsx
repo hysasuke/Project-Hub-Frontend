@@ -1,6 +1,6 @@
 let host = process.env.NEXT_PUBLIC_HOST;
 import { _fetch as fetch } from "../utils/fetch";
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
   // You now have access to `window`
   host = window.location.origin;
 }

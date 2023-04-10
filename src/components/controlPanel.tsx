@@ -30,11 +30,11 @@ import Keypad from "./Keypad/keypad";
 import { useRouter } from "next/router";
 import { swapItem } from "@/utils/utils";
 
-let host = process.env.NEXT_PUBLIC_HOST;
-if (typeof window !== "undefined") {
-  host = window.location.origin;
-}
 export default function ControlPanel(props: any) {
+  let host =
+    process.env.NODE_ENV === "production"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_HOST;
   const isMobile = window.matchMedia("(any-hover: none)").matches;
   const router = useRouter();
   const query = router.query;
@@ -103,26 +103,49 @@ export default function ControlPanel(props: any) {
   };
   const keydownEventHandler = useCallback((event: any) => {
     event.preventDefault();
-    if (event.key === "Shift" && !modifiers.includes("Shift")) {
-      let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-      setModifiers([...modifiers, leftOrRight + "Shift"]);
-    } else if (event.key === "Control" && !modifiers.includes("Control")) {
-      let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-      setModifiers([...modifiers, leftOrRight + "Control"]);
-    } else if (event.key === "Alt" && !modifiers.includes("Alt")) {
-      let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-      setModifiers([...modifiers, leftOrRight + "Alt"]);
-    } else if (
-      event.key &&
-      pressedKey !== event.key &&
-      !["Control", "Shift", "Alt"].includes(event.key)
-    ) {
-      // Extract the number key from the code
+    console.log(event);
+    // if (event.key === "Shift" && !modifiers.includes("Shift")) {
+    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
+    //   setModifiers([...modifiers, leftOrRight + "Shift"]);
+    // } else if (event.key === "Control" && !modifiers.includes("Control")) {
+    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
+    //   setModifiers([...modifiers, leftOrRight + "Control"]);
+    // } else if (event.key === "Alt" && !modifiers.includes("Alt")) {
+    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
+    //   setModifiers([...modifiers, leftOrRight + "Alt"]);
+    // } else if (event.key === "Meta" && !modifiers.includes("Meta")) {
+    //   const modifierCopy = [...modifiers];
+    //   console.log(modifierCopy);
+    //   modifierCopy.push("LeftCmd");
+    //   setModifiers(modifierCopy);
+    // } else if (
+    //   event.key &&
+    //   pressedKey !== event.key &&
+    //   !["Control", "Shift", "Alt", "Meta"].includes(event.key)
+    // ) {
+    //   // Extract the number key from the code
+    //   if (event.code.includes("Digit")) {
+    //     setPressedKey(event.code.replace("Digit", "Num"));
+    //   } else if (event.code.includes("Key")) {
+    //     setPressedKey(event.code.replace("Key", ""));
+    //   }
+    // }
+
+    let modifiers = [];
+    if (event.ctrlKey) modifiers.push("Control");
+    if (event.shiftKey) modifiers.push("Shift");
+    if (event.altKey) modifiers.push("Alt");
+    if (event.metaKey) modifiers.push("Command");
+
+    if (![16, 17, 18, 91, 93].includes(event.keyCode)) {
       if (event.code.includes("Digit")) {
         setPressedKey(event.code.replace("Digit", "Num"));
       } else if (event.code.includes("Key")) {
         setPressedKey(event.code.replace("Key", ""));
       }
+      setModifiers(modifiers);
+    } else {
+      setPressedKey("");
     }
   }, []);
 
@@ -337,11 +360,10 @@ export default function ControlPanel(props: any) {
           {selectedGroupItemType}
         </Dropdown.Button>
         <Dropdown.Menu
-          aria-label="Single selection actions"
+          aria-label="Group item type selection"
           color="primary"
           disallowEmptySelection
           selectionMode="single"
-          selectedKeys={groupItemType}
           onSelectionChange={(keys: any) => {
             // Check if the user is using mobile devices, then show the alert message to tell user to set the keybinding on desktop
             if (keys.has("keybind") && isMobile) {
@@ -351,9 +373,15 @@ export default function ControlPanel(props: any) {
             }
           }}
         >
-          <Dropdown.Item key="file">File</Dropdown.Item>
-          <Dropdown.Item key="link">Link</Dropdown.Item>
-          <Dropdown.Item key="keybind">Keybind</Dropdown.Item>
+          <Dropdown.Item key="file" aria-label="File">
+            File
+          </Dropdown.Item>
+          <Dropdown.Item key="link" aria-label="Link">
+            Link
+          </Dropdown.Item>
+          <Dropdown.Item key="keybind" aria-label="Keybind">
+            Keybind
+          </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown>
     );
@@ -428,12 +456,12 @@ export default function ControlPanel(props: any) {
     return (
       <Modal
         closeButton
-        aria-labelledby="modal-title"
+        aria-labelledby="Group item create modal"
         open={createModalVisible}
         onClose={createModalOnClose}
       >
         <Modal.Header>
-          <Text id="modal-title" size={18}>
+          <Text id="createGroupItem" size={18}>
             Create a new group item
           </Text>
         </Modal.Header>
@@ -532,6 +560,7 @@ export default function ControlPanel(props: any) {
     if (selectedGroupItemType !== "keybind") {
       return null;
     }
+    console.log(modifiers);
     const keybindValue = [...modifiers, pressedKey].join("+");
     const buttonText = recordingKeyboard ? "Stop Recording" : "Start Recording";
     const buttonColor = recordingKeyboard ? "error" : "primary";

@@ -15,15 +15,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { IconButton } from "@mui/material";
 import { useAnimationFrame } from "@/utils/useAnimationFrame";
-import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
-import VolumeDownIcon from "@mui/icons-material/VolumeDown";
-import VolumeMuteIcon from "@mui/icons-material/VolumeMute";
-import VolumeOffIcon from "@mui/icons-material/VolumeOff";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import { Stack, Slider } from "@mui/material";
-import { getVolume, setVolume } from "@/modules/SystemControlModule";
 import EditIcon from "@mui/icons-material/Edit";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import WebSocket from "ws";
 
@@ -68,29 +60,6 @@ export default function Header({
     setDisplayTime(clock());
   });
 
-  useEffect(() => {
-    const getCurrentVolume = async () => {
-      const result = await getVolume();
-      if (result.error === 0) {
-        setCurrentVolume(result.data.volume);
-        setToVolume(result.data.volume);
-        setMuted(result.data.muted);
-      }
-    };
-    getCurrentVolume();
-  }, []);
-
-  useEffect(() => {
-    if (socketMessage && socketMessage.type === "system_volume") {
-      if (Object.keys(socketMessage.data).includes("muted")) {
-        setMuted(socketMessage.data.muted);
-      } else if (Object.keys(socketMessage.data).includes("volume")) {
-        setCurrentVolume(socketMessage.data.volume);
-        setToVolume(socketMessage.data.volume);
-      }
-    }
-  }, [socketMessage]);
-
   const clock = () => {
     const date = new Date();
     const hours =
@@ -124,55 +93,6 @@ export default function Header({
     const week = daysOfWeek[date.getDay()];
     const fullDate = `${year}-${month}-${day} ${week}`;
     return fullDate;
-  };
-
-  const renderVolumeIconButton = () => {
-    if (!muted) {
-      if (toVolume === 0) {
-        return <VolumeMuteIcon />;
-      } else if (toVolume < 50) {
-        return <VolumeDownIcon />;
-      } else if (toVolume >= 50) {
-        return <VolumeUpIcon />;
-      }
-    } else {
-      return <VolumeOffIcon />;
-    }
-    return null;
-  };
-
-  const renderVolumeSlider = () => {
-    return (
-      <Row style={{ width: 200, padding: 20 }} align="center">
-        <Text>{toVolume}</Text>
-        <Slider
-          size="small"
-          aria-label="Volume"
-          value={toVolume}
-          style={{ marginLeft: 10 }}
-          min={0}
-          max={100}
-          onChangeCommitted={(event, value) => {
-            if (socket) {
-              socket.send(
-                JSON.stringify({
-                  type: "system_volume",
-                  data: {
-                    volume: value
-                  }
-                })
-              );
-            }
-          }}
-          onChange={(event) => {
-            const target = event.target as HTMLButtonElement;
-            if (parseInt(target.value) >= 0) {
-              setToVolume(parseInt(target.value));
-            }
-          }}
-        />
-      </Row>
-    );
   };
 
   return (
@@ -225,14 +145,6 @@ export default function Header({
           }
         }}
       >
-        <Popover>
-          <Popover.Trigger>
-            <IconButton style={{ color: "white" }}>
-              {renderVolumeIconButton()}
-            </IconButton>
-          </Popover.Trigger>
-          <Popover.Content>{renderVolumeSlider()}</Popover.Content>
-        </Popover>
         <Dropdown placement="bottom-right">
           <Navbar.Item>
             <Dropdown.Trigger>
@@ -249,12 +161,6 @@ export default function Header({
                 case "edit":
                   setEditing(!editing);
                   break;
-                case "shutdown":
-                  setShutdownModalVisible(true);
-                  break;
-                case "restart":
-                  setRestartModalVisible(true);
-                  break;
                 default:
                   break;
               }
@@ -265,22 +171,6 @@ export default function Header({
                 <EditIcon />
                 <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
                   {editing ? "DONE" : "EDIT"}
-                </Text>
-              </Row>
-            </Dropdown.Item>
-            <Dropdown.Item withDivider key="restart" color={"warning"}>
-              <Row align="center">
-                <RestartAltIcon />
-                <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
-                  Restart
-                </Text>
-              </Row>
-            </Dropdown.Item>
-            <Dropdown.Item key="shutdown" color={"error"}>
-              <Row align="center">
-                <PowerSettingsNewIcon />
-                <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
-                  Shutdown
                 </Text>
               </Row>
             </Dropdown.Item>

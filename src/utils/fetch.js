@@ -1,5 +1,4 @@
 export async function _fetch(url, options) {
-  console.log("fetching: " + url);
   try {
     const response = await fetch(url, options);
     if (response) {

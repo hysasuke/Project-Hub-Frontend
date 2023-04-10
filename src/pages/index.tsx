@@ -107,7 +107,6 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
           color="primary"
           disallowEmptySelection
           selectionMode="single"
-          selectedKeys={groupType}
           onSelectionChange={(keys: any) => {
             // Check if the user is using mobile devices, then show the alert message to tell user to set the keybinding on desktop
             setGroupType(keys as Set<string>);
