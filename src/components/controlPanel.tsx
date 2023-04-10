@@ -32,7 +32,7 @@ import { swapItem } from "@/utils/utils";
 
 let host = process.env.NEXT_PUBLIC_HOST;
 if (typeof window !== "undefined") {
-  host = process.env.NEXT_PUBLIC_HOST || window.location.origin;
+  host = window.location.origin;
 }
 export default function ControlPanel(props: any) {
   const isMobile = window.matchMedia("(any-hover: none)").matches;

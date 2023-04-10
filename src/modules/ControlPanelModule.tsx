@@ -2,7 +2,7 @@ let host = process.env.NEXT_PUBLIC_HOST;
 import { _fetch as fetch } from "../utils/fetch";
 if (typeof window !== "undefined") {
   // You now have access to `window`
-  host = process.env.NEXT_PUBLIC_HOST || window.location.origin;
+  host = window.location.origin;
 }
 export async function getGroups() {
   const groups = await fetch(`${host}/group`);

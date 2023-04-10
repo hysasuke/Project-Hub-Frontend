@@ -22,7 +22,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const serverHealthCheck = async () => {
     try {
-      let host = process.env.NEXT_PUBLIC_HOST || window.location.origin;
+      let host = window.location.origin;
       let response = await fetch(host + "/serverHealthCheck");
       if (response.status === 200) {
         setServerAlive(true);
