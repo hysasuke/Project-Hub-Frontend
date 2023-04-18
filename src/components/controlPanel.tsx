@@ -50,7 +50,7 @@ export default function ControlPanel(props: any) {
   const [modifiers, setModifiers] = React.useState<Array<String>>([]);
   const [pressedKey, setPressedKey] = React.useState<String>("");
   const [recordingKeyboard, setRecordingKeyboard] = React.useState(false);
-  const [currentDraggingID, setCurrentDraggingID] = React.useState(-1);
+  const [currentDraggingIndex, setCurrentDraggingIndex] = React.useState(-1);
   const [groupItems, setGroupItems] = React.useState<any>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<any>(null);
   const selectedGroupItemType = React.useMemo(
@@ -66,7 +66,7 @@ export default function ControlPanel(props: any) {
 
   useEffect(() => {
     if (!props.editing) {
-      setCurrentDraggingID(-1);
+      setCurrentDraggingIndex(-1);
     }
   }, [props.editing]);
 
@@ -103,7 +103,6 @@ export default function ControlPanel(props: any) {
   };
   const keydownEventHandler = useCallback((event: any) => {
     event.preventDefault();
-    console.log(event);
     // if (event.key === "Shift" && !modifiers.includes("Shift")) {
     //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
     //   setModifiers([...modifiers, leftOrRight + "Shift"]);
@@ -198,21 +197,22 @@ export default function ControlPanel(props: any) {
             <Grid
               draggable={props.editing}
               onDragStart={(e) => {
-                setCurrentDraggingID(groupItem.id);
+                setCurrentDraggingIndex(index);
               }}
               onDragOver={(e) => {
                 e.preventDefault();
                 const { newArray, isModified } = swapItem(
-                  currentDraggingID,
-                  groupItem.id,
+                  currentDraggingIndex,
+                  index,
                   groupItems
                 );
                 if (isModified) {
+                  setCurrentDraggingIndex(index);
                   setGroupItems(newArray);
                 }
               }}
               onDragEnd={async (e) => {
-                setCurrentDraggingID(-1);
+                setCurrentDraggingIndex(-1);
                 await reorderGroupItems(groupItems);
               }}
               xs={4}
@@ -223,7 +223,7 @@ export default function ControlPanel(props: any) {
                 aspectRatio: "1/1",
                 display: "flex",
                 overflow: "hidden",
-                opacity: currentDraggingID === groupItem.id ? 0.5 : 1
+                opacity: currentDraggingIndex === index ? 0.5 : 1
               }}
             >
               <ButtonBase

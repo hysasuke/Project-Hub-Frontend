@@ -28,7 +28,7 @@ export default function GroupPanel(props: any) {
   const [renameModalVisible, setRenameModalVisible] = React.useState(false);
   const [editingGroup, setEditingGroup] = React.useState<any>(null);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
-  const [currentDraggingID, setCurrentDraggingID] = React.useState(-1);
+  const [currentDraggingIndex, setCurrentDraggingIndex] = React.useState(-1);
   const [groups, setGroups] = React.useState<any[]>([]);
 
   React.useEffect(() => {
@@ -47,26 +47,27 @@ export default function GroupPanel(props: any) {
     props.setCurrentGroup(group);
   };
   const renderGroups = () => {
-    return groups.map((group: any) => {
+    return groups.map((group: any, index: number) => {
       return (
         <ButtonBase
           draggable={props.editing}
           onDragStart={(e) => {
-            setCurrentDraggingID(group.id);
+            setCurrentDraggingIndex(index);
           }}
           onDragOver={(e) => {
             e.preventDefault();
             const { newArray, isModified } = swapItem(
-              currentDraggingID,
-              group.id,
+              currentDraggingIndex,
+              index,
               groups
             );
             if (isModified) {
+              setCurrentDraggingIndex(index);
               setGroups(newArray);
             }
           }}
           onDragEnd={async (e) => {
-            setCurrentDraggingID(-1);
+            setCurrentDraggingIndex(-1);
             await reorderGroups(groups);
           }}
           key={"group-" + group.id}

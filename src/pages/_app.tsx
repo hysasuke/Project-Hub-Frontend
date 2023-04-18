@@ -2,7 +2,8 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { NextUIProvider, createTheme } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createContext } from "react";
+import { GlobalStoreContext } from "@/store/GlobalStore";
 
 const lightTheme = createTheme({
   type: "light",
@@ -19,6 +20,37 @@ export default function App({ Component, pageProps }: AppProps) {
   const [socket, setSocket] = useState<WebSocket | null>();
   const [serverAlive, setServerAlive] = useState<boolean>(true);
   const serverAliveCheckInterval = useRef<any>(null);
+
+  const [globalStore, setGlobalStore] = useState<any>({
+    touchBarComponents: [],
+    currentDraggingComponent: null,
+    touchBarWidth: 0,
+    touchBarFull: false,
+    touchBarSettingComponents: [
+      {
+        type: "clock",
+        name: "Clock"
+      },
+      {
+        type: "customText",
+        text: "Project Hub",
+        name: "Custom Text"
+      },
+      // {
+      //   type: "screenSwitcher",
+      //   name: "Screen Switcher"
+      // },
+      {
+        type: "mediaControl",
+        name: "Media Control"
+      },
+      {
+        type: "volumeControl",
+        name: "Volume Control"
+      }
+    ]
+  });
+
   const serverHealthCheck = async () => {
     try {
       let host =
@@ -74,6 +106,14 @@ export default function App({ Component, pageProps }: AppProps) {
       });
     }
   }, [socket]);
+
+  const dispatch = (newStoreObject: any) => {
+    setGlobalStore((prev: any) => ({
+      ...prev,
+      ...newStoreObject
+    }));
+  };
+
   return (
     <NextThemesProvider
       defaultTheme="dark"
@@ -81,12 +121,14 @@ export default function App({ Component, pageProps }: AppProps) {
       value={{ light: lightTheme.className, dark: darkTheme.className }}
     >
       <NextUIProvider>
-        <Component
-          {...pageProps}
-          socketMessage={socketMessage}
-          socket={socket ? socket : null}
-          serverAlive={serverAlive}
-        />
+        <GlobalStoreContext.Provider value={{ globalStore, dispatch }}>
+          <Component
+            {...pageProps}
+            socketMessage={socketMessage}
+            socket={socket ? socket : null}
+            serverAlive={serverAlive}
+          />
+        </GlobalStoreContext.Provider>
       </NextUIProvider>
     </NextThemesProvider>
   );
