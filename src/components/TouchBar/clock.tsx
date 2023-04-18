@@ -4,7 +4,7 @@ import React from "react";
 
 export const CLOCK_WIDTH = 80;
 export const TYPE = "clock";
-export default function clock() {
+export default function Clock() {
   const [displayTime, setDisplayTime] = React.useState<string>("");
   useAnimationFrame(() => {
     setDisplayTime(clock());

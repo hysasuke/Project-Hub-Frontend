@@ -21,7 +21,7 @@ type Props = {
   disabled?: boolean;
 };
 
-export default function screenSwitcher(props: Props) {
+export default function ScreenSwitcher(props: Props) {
   return (
     <Container
       style={{

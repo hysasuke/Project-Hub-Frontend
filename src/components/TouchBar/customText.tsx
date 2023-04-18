@@ -8,7 +8,7 @@ type Props = {
   onChangeText?: (text: string) => void;
   editable?: boolean;
 };
-export default function customText({ text, onChangeText, editable }: Props) {
+export default function CustomText({ text, onChangeText, editable }: Props) {
   const [editing, setEditing] = React.useState(false);
 
   return (

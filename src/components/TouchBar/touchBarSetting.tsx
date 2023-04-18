@@ -35,7 +35,7 @@ const ComponentContainer = styled("div")({
   paddingBottom: 10
 });
 
-export default function touchBarSetting(props: touchBarSettingProps) {
+export default function TouchBarSetting(props: touchBarSettingProps) {
   const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
 
   const renderComponent = (

@@ -26,7 +26,7 @@ const ComponentContainer = styled("div")({
 type Props = {
   editing?: boolean;
 };
-function touchBar(props: Props) {
+function TouchBar(props: Props) {
   const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
   const touchBarRef = React.useRef<HTMLDivElement>(null);
 
@@ -151,4 +151,4 @@ function touchBar(props: Props) {
   );
 }
 
-export default touchBar;
+export default TouchBar;
