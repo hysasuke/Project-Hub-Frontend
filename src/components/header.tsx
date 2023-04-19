@@ -21,7 +21,8 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import AddIcon from "@mui/icons-material/Add";
 import TouchBar from "./TouchBar";
 import TouchBarSetting from "./TouchBar/touchBarSetting";
-
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 type HeaderProps = {
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
   editing: boolean;
@@ -71,6 +72,22 @@ export default function Header({
             {editing ? "Done" : "Edit"}
           </Text>
         </Row>
+      </Dropdown.Item>,
+      <Dropdown.Item withDivider key="restart" color={"warning"}>
+        <Row align="center">
+          <RestartAltIcon />
+          <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
+            Restart
+          </Text>
+        </Row>
+      </Dropdown.Item>,
+      <Dropdown.Item key="shutdown" color={"error"}>
+        <Row align="center">
+          <PowerSettingsNewIcon />
+          <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
+            Shutdown
+          </Text>
+        </Row>
       </Dropdown.Item>
     ];
     if (editing) {
@@ -110,6 +127,12 @@ export default function Header({
                 break;
               case "touchBarSetting":
                 setTouchBarSettingModalVisible(true);
+                break;
+              case "shutdown":
+                setShutdownModalVisible(true);
+                break;
+              case "restart":
+                setRestartModalVisible(true);
                 break;
               default:
                 break;
