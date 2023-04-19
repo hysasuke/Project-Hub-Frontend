@@ -102,7 +102,7 @@ export default function Header({
                 marginLeft: 5
               }}
             >
-              Edit Touchbar
+              Edit Header
             </Text>
           </Row>
         </Dropdown.Item>
