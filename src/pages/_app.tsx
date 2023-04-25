@@ -22,6 +22,10 @@ export default function App({ Component, pageProps }: AppProps) {
   const serverAliveCheckInterval = useRef<any>(null);
 
   const [globalStore, setGlobalStore] = useState<any>({
+    host:
+      process.env.NODE_ENV === "production"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_HOST,
     touchBarComponents: [],
     currentDraggingComponent: null,
     touchBarWidth: 0,
@@ -47,17 +51,17 @@ export default function App({ Component, pageProps }: AppProps) {
       {
         type: "volumeControl",
         name: "Volume Control"
+      },
+      {
+        type: "timer",
+        name: "Timer"
       }
     ]
   });
 
   const serverHealthCheck = async () => {
     try {
-      let host =
-        process.env.NODE_ENV === "production"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_HOST;
-      let response = await fetch(host + "/serverHealthCheck");
+      let response = await fetch(globalStore.host + "/serverHealthCheck");
       if (response.status === 200) {
         setServerAlive(true);
       } else {
