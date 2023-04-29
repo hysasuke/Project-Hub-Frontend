@@ -20,9 +20,17 @@ import VolumeControl, {
   TYPE as VOLUME_CONTROL_TYPE
 } from "./volumeControl";
 
+import Timer, { TIMER_WIDTH, TYPE as TIMER_TYPE } from "./timer";
 export default TouchBar;
 
-export { Clock, CustomText, ScreenSwitcher, MediaControl, VolumeControl };
+export {
+  Clock,
+  CustomText,
+  ScreenSwitcher,
+  MediaControl,
+  VolumeControl,
+  Timer
+};
 
 export {
   CLOCK_WIDTH,
@@ -34,5 +42,7 @@ export {
   MEDIA_CONTROL_WIDTH,
   MEDIA_CONTROL_TYPE,
   VOLUME_CONTROL_WIDTH,
-  VOLUME_CONTROL_TYPE
+  VOLUME_CONTROL_TYPE,
+  TIMER_TYPE,
+  TIMER_WIDTH
 };

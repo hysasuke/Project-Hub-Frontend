@@ -15,7 +15,10 @@ import {
   MEDIA_CONTROL_WIDTH,
   VolumeControl,
   VOLUME_CONTROL_TYPE,
-  VOLUME_CONTROL_WIDTH
+  VOLUME_CONTROL_WIDTH,
+  TIMER_TYPE,
+  TIMER_WIDTH,
+  Timer
 } from "./index";
 import { styled } from "@mui/material/styles";
 
@@ -123,6 +126,10 @@ export default function TouchBarSetting(props: touchBarSettingProps) {
         case VOLUME_CONTROL_TYPE:
           component = <VolumeControl disabled={true} />;
           width = VOLUME_CONTROL_WIDTH;
+          break;
+        case TIMER_TYPE:
+          component = <Timer disabled={true} />;
+          width = TIMER_WIDTH;
           break;
         default:
           component = null;
