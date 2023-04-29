@@ -3,8 +3,7 @@ import type { AppProps } from "next/app";
 import { NextUIProvider, createTheme } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useState, useEffect, useRef, createContext } from "react";
-import { GlobalStoreContext } from "@/store/GlobalStore";
-
+import { GlobalStoreContext, initialGlobalStore } from "@/store/GlobalStore";
 const lightTheme = createTheme({
   type: "light",
   theme: {}
@@ -22,42 +21,16 @@ export default function App({ Component, pageProps }: AppProps) {
   const serverAliveCheckInterval = useRef<any>(null);
 
   const [globalStore, setGlobalStore] = useState<any>({
-    touchBarComponents: [],
-    currentDraggingComponent: null,
-    touchBarWidth: 0,
-    touchBarFull: false,
-    touchBarSettingComponents: [
-      {
-        type: "clock",
-        name: "Clock"
-      },
-      {
-        type: "customText",
-        text: "Project Hub",
-        name: "Custom Text"
-      },
-      // {
-      //   type: "screenSwitcher",
-      //   name: "Screen Switcher"
-      // },
-      {
-        type: "mediaControl",
-        name: "Media Control"
-      },
-      {
-        type: "volumeControl",
-        name: "Volume Control"
-      }
-    ]
+    host:
+      process.env.NODE_ENV === "production"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_HOST,
+    ...initialGlobalStore
   });
 
   const serverHealthCheck = async () => {
     try {
-      let host =
-        process.env.NODE_ENV === "production"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_HOST;
-      let response = await fetch(host + "/serverHealthCheck");
+      let response = await fetch(globalStore.host + "/serverHealthCheck");
       if (response.status === 200) {
         setServerAlive(true);
       } else {

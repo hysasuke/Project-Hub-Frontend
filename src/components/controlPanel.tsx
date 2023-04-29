@@ -29,7 +29,7 @@ import KeyboardIcon from "@mui/icons-material/Keyboard";
 import Keypad from "./Keypad/keypad";
 import { useRouter } from "next/router";
 import { swapItem } from "@/utils/utils";
-
+import ControlPanelItem from "./ControlPanelItem";
 export default function ControlPanel(props: any) {
   let host =
     process.env.NODE_ENV === "production"
@@ -194,8 +194,24 @@ export default function ControlPanel(props: any) {
       <Grid.Container direction="row" wrap="wrap" gap={1}>
         {groupItems.map((groupItem: any, index: number) => {
           return (
-            <Grid
+            <ControlPanelItem
+              key={"groupItem" + index}
+              index={index}
+              groupItem={groupItem}
+              editing={props.editing}
               draggable={props.editing}
+              onClick={() => {
+                if (!props.editing) {
+                  executeGroupItem(groupItem.id);
+                } else {
+                  setRenameModalVisible(true);
+                  setEditingGroupItem(groupItem);
+                }
+              }}
+              onClickDelete={() => {
+                setDeleteModalVisible(true);
+                setEditingGroupItem(groupItem);
+              }}
               onDragStart={(e) => {
                 setCurrentDraggingIndex(index);
               }}
@@ -215,71 +231,7 @@ export default function ControlPanel(props: any) {
                 setCurrentDraggingIndex(-1);
                 await reorderGroupItems(groupItems);
               }}
-              xs={4}
-              sm={2}
-              md={1}
-              key={"groupItem" + index}
-              style={{
-                aspectRatio: "1/1",
-                display: "flex",
-                overflow: "hidden",
-                opacity: currentDraggingIndex === index ? 0.5 : 1
-              }}
-            >
-              <ButtonBase
-                onClick={() => {
-                  if (!props.editing) {
-                    executeGroupItem(groupItem.id);
-                  } else {
-                    setRenameModalVisible(true);
-                    setEditingGroupItem(groupItem);
-                  }
-                }}
-                style={{
-                  borderWidth: 3,
-                  borderStyle: "solid",
-                  borderRadius: 10,
-                  borderColor: "gray",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  flex: 1,
-                  overflow: "hidden"
-                }}
-              >
-                {props.editing && (
-                  <IconButton
-                    onClick={(e) => {
-                      // Prevent the button from triggering the parent button
-                      e.stopPropagation();
-
-                      setDeleteModalVisible(true);
-                      setEditingGroupItem(groupItem);
-                    }}
-                    color="error"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0
-                    }}
-                  >
-                    <RemoveCircleIcon fontSize="small" />
-                  </IconButton>
-                )}
-                {renderIcon(groupItem)}
-                <Text
-                  css={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    wordWrap: "normal",
-                    width: "calc(100% - 20px)"
-                  }}
-                >
-                  {groupItem.name}
-                </Text>
-              </ButtonBase>
-            </Grid>
+            />
           );
         })}
         {props.groupItems.length < 20 && (

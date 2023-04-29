@@ -16,11 +16,13 @@ import {
 import { styled } from "@mui/material/styles";
 import { getHeaderComponents } from "@/modules/HeaderModule";
 import MediaControl from "./mediaControl";
+import Timer from "./timer";
+import ScreenShotControl from "./screenShotControl";
 const ComponentContainer = styled("div")({
   borderRadius: 5,
-  // backgroundColor: "#303030",
-  paddingTop: 10,
-  paddingBottom: 10
+  height: "100%",
+  display: "flex",
+  alignItems: "center"
 });
 
 type Props = {
@@ -29,6 +31,8 @@ type Props = {
 function TouchBar(props: Props) {
   const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
   const touchBarRef = React.useRef<HTMLDivElement>(null);
+
+  const [animation, setAnimation] = React.useState("");
 
   React.useEffect(() => {
     const _getHeaderComponents = async () => {
@@ -55,6 +59,16 @@ function TouchBar(props: Props) {
       });
     }
   }, [touchBarRef]);
+
+  React.useEffect(() => {
+    if (globalStore.touchBarFull) {
+      setAnimation(styles.shake);
+    } else {
+      if (animation === styles.shake) {
+        setAnimation("");
+      }
+    }
+  }, [globalStore.touchBarFull]);
 
   const getTouchBarComponent = (
     type: string,
@@ -83,6 +97,10 @@ function TouchBar(props: Props) {
           return <MediaControl disabled={false} />;
         case "volumeControl":
           return <VolumeControl disabled={false} />;
+        case "timer":
+          return <Timer disabled={false} setAnimation={setAnimation} />;
+        case "screenShotControl":
+          return <ScreenShotControl disabled={false} />;
         default:
           return null;
       }
@@ -144,7 +162,7 @@ function TouchBar(props: Props) {
       onDragOver={(e) =>
         handleOnDragOverFromSettingToTouchBar(e, dispatch, globalStore)
       }
-      className={globalStore.touchBarFull ? styles.shake : ""}
+      className={animation}
     >
       {renderTouchBarComponents()}
     </Grid>

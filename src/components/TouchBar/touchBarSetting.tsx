@@ -15,7 +15,13 @@ import {
   MEDIA_CONTROL_WIDTH,
   VolumeControl,
   VOLUME_CONTROL_TYPE,
-  VOLUME_CONTROL_WIDTH
+  VOLUME_CONTROL_WIDTH,
+  TIMER_TYPE,
+  TIMER_WIDTH,
+  Timer,
+  ScreenShotControl,
+  SCREEN_SHOT_CONTROL_WIDTH,
+  SCREEN_SHOT_CONTROL_TYPE
 } from "./index";
 import { styled } from "@mui/material/styles";
 
@@ -124,6 +130,14 @@ export default function TouchBarSetting(props: touchBarSettingProps) {
           component = <VolumeControl disabled={true} />;
           width = VOLUME_CONTROL_WIDTH;
           break;
+        case TIMER_TYPE:
+          component = <Timer disabled={true} />;
+          width = TIMER_WIDTH;
+          break;
+        case SCREEN_SHOT_CONTROL_TYPE:
+          component = <ScreenShotControl disabled={true} />;
+          width = SCREEN_SHOT_CONTROL_WIDTH;
+          break;
         default:
           component = null;
           break;
@@ -147,7 +161,6 @@ export default function TouchBarSetting(props: touchBarSettingProps) {
       alignItems={"center"}
       flexWrap={"wrap"}
       rowSpacing={3}
-      justifyContent={"space-between"}
       onDragOver={(e) =>
         handleOnDragOverFromTouchBarToSetting(e, dispatch, globalStore)
       }
