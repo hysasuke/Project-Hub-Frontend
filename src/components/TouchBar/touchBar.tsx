@@ -17,6 +17,7 @@ import { styled } from "@mui/material/styles";
 import { getHeaderComponents } from "@/modules/HeaderModule";
 import MediaControl from "./mediaControl";
 import Timer from "./timer";
+import ScreenShotControl from "./screenShotControl";
 const ComponentContainer = styled("div")({
   borderRadius: 5,
   height: "100%",
@@ -98,6 +99,8 @@ function TouchBar(props: Props) {
           return <VolumeControl disabled={false} />;
         case "timer":
           return <Timer disabled={false} setAnimation={setAnimation} />;
+        case "screenShotControl":
+          return <ScreenShotControl disabled={false} />;
         default:
           return null;
       }

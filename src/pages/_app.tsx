@@ -3,8 +3,7 @@ import type { AppProps } from "next/app";
 import { NextUIProvider, createTheme } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useState, useEffect, useRef, createContext } from "react";
-import { GlobalStoreContext } from "@/store/GlobalStore";
-
+import { GlobalStoreContext, initialGlobalStore } from "@/store/GlobalStore";
 const lightTheme = createTheme({
   type: "light",
   theme: {}
@@ -26,37 +25,7 @@ export default function App({ Component, pageProps }: AppProps) {
       process.env.NODE_ENV === "production"
         ? window.location.origin
         : process.env.NEXT_PUBLIC_HOST,
-    touchBarComponents: [],
-    currentDraggingComponent: null,
-    touchBarWidth: 0,
-    touchBarFull: false,
-    touchBarSettingComponents: [
-      {
-        type: "clock",
-        name: "Clock"
-      },
-      {
-        type: "customText",
-        text: "Project Hub",
-        name: "Custom Text"
-      },
-      // {
-      //   type: "screenSwitcher",
-      //   name: "Screen Switcher"
-      // },
-      {
-        type: "mediaControl",
-        name: "Media Control"
-      },
-      {
-        type: "volumeControl",
-        name: "Volume Control"
-      },
-      {
-        type: "timer",
-        name: "Timer"
-      }
-    ]
+    ...initialGlobalStore
   });
 
   const serverHealthCheck = async () => {
