@@ -1,9 +1,8 @@
 import Head from "next/head";
-import { Inter } from "next/font/google";
 import ProjectHubHeader from "@/components/header";
 import ControlPanel from "@/components/controlPanel";
 import GroupPanel from "@/components/groupPanel";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useContext } from "react";
 import {
   addGroup,
   getGroupItems,
@@ -17,23 +16,23 @@ import {
   Card,
   Dropdown,
   Grid as NextGrid,
-  Row
+  Row,
+  Loading
 } from "@nextui-org/react";
 import { Grid, Collapse } from "@mui/material";
 import { shutdown, restart } from "@/modules/SystemControlModule";
 import { useRouter } from "next/router";
 import DesktopAccessDisabledIcon from "@mui/icons-material/DesktopAccessDisabled";
+import { GlobalStoreContext } from "@/store/GlobalStore";
+import { getHeaderComponents } from "@/modules/HeaderModule";
+import { generateTouchBarComponents } from "@/utils/utils";
 
 export default function Home({ socketMessage, socket, serverAlive }: any) {
+  const { globalStore, dispatch } = useContext(GlobalStoreContext);
   const router = useRouter();
   const query = router.query;
-  const [groups, setGroups] = useState([]);
-  const [groupItems, setGroupItems] = useState([]);
   const [visible, setVisible] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [currentGroupId, setCurrentGroupId] = useState(1);
-  const [currentGroup, setCurrentGroup] = useState<any>(null);
-  const [editing, setEditing] = useState(false);
   const [groupPanelExpanded, setGroupPanelExpanded] = useState(true);
   const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
   const [restartModalVisible, setRestartModalVisible] = useState(false);
@@ -51,26 +50,71 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   );
 
   const _getGroups = async () => {
+    dispatch({ loading: true });
     const result = await getGroups();
+    dispatch({ loading: false });
     if (result.error === 0) {
-      setGroups(result.data);
-      setCurrentGroup(result.data[0]);
+      dispatch({ groups: result.data });
     } else {
       setError(result);
     }
   };
 
   const _getGroupItems = async (groupId: number) => {
+    dispatch({ loading: true });
     const result = await getGroupItems(groupId);
+    dispatch({ loading: false });
     if (result.error === 0) {
-      setGroupItems(result.data);
+      dispatch({
+        groupItems: result.data
+      });
     } else {
       setError(result);
     }
   };
 
+  const _getHeaderComponents = async () => {
+    const result = await getHeaderComponents();
+    if (result.error === 0) {
+      let { touchBarComponents, touchBarSettingComponents } =
+        generateTouchBarComponents(
+          result.data,
+          globalStore.touchBarSettingComponents
+        );
+      dispatch({
+        touchBarComponents: touchBarComponents,
+        touchBarSettingComponents: touchBarSettingComponents
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (socketMessage) {
+      socketMessageController(socketMessage);
+    }
+  }, [socketMessage]);
+
+  const socketMessageController = (message: any) => {
+    if (message.type === "updateInfo") {
+      switch (message.target) {
+        case "group":
+          _getGroups();
+          break;
+        case "groupItem":
+          _getGroupItems(globalStore.currentGroupID);
+          break;
+        case "header":
+          _getHeaderComponents();
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
   useEffect(() => {
     _getGroups();
+    _getHeaderComponents();
   }, []);
 
   useEffect(() => {
@@ -78,8 +122,8 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
   }, [serverAlive]);
 
   useEffect(() => {
-    _getGroupItems(currentGroupId);
-  }, [currentGroupId]);
+    _getGroupItems(globalStore.currentGroupID);
+  }, [globalStore.currentGroupID]);
 
   const onClose = () => {
     setVisible(false);
@@ -323,6 +367,22 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
     );
   };
 
+  const renderLoadingModal = () => {
+    return (
+      <Modal
+        preventClose={true}
+        aria-labelledby="loading"
+        open={globalStore.loading}
+        onClose={() => dispatch({ loading: false })}
+        width={"100px"}
+      >
+        <Modal.Body>
+          <Loading />
+        </Modal.Body>
+      </Modal>
+    );
+  };
+
   return (
     <>
       <Head>
@@ -333,18 +393,12 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ProjectHubHeader
-        setEditing={setEditing}
-        editing={editing}
         setShutdownModalVisible={setShutdownModalVisible}
         socketMessage={socketMessage}
         socket={socket}
         groupPanelExpanded={groupPanelExpanded}
         setGroupPanelExpanded={setGroupPanelExpanded}
         setRestartModalVisible={setRestartModalVisible}
-        groups={groups}
-        currentGroupId={currentGroupId}
-        setCurrentGroupId={setCurrentGroupId}
-        setCurrentGroup={setCurrentGroup}
         setVisible={setVisible}
       />
       <Grid
@@ -358,7 +412,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
           flex: 1
         }}
       >
-        {groups?.length > 0 ? (
+        {globalStore.groups?.length > 0 ? (
           <>
             <NextGrid
               css={{
@@ -379,12 +433,6 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
                 orientation="horizontal"
               >
                 <GroupPanel
-                  editing={editing}
-                  groups={groups}
-                  setGroupItems={setGroupItems}
-                  getGroups={_getGroups}
-                  setCurrentGroupId={setCurrentGroupId}
-                  setCurrentGroup={setCurrentGroup}
                   setGroupPanelExpanded={setGroupPanelExpanded}
                   groupPanelExpanded={groupPanelExpanded}
                   showAddGroupModal={() => {
@@ -395,16 +443,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
               </Collapse>
             </NextGrid>
             <Grid xs item container marginLeft={0}>
-              <ControlPanel
-                editing={editing}
-                groupItems={groupItems}
-                currentGroup={currentGroup}
-                getGroups={_getGroups}
-                getGroupItems={_getGroupItems}
-                currentGroupId={currentGroupId}
-                socket={socket}
-                setError={setError}
-              />
+              <ControlPanel socket={socket} setError={setError} />
             </Grid>
           </>
         ) : (
@@ -416,6 +455,7 @@ export default function Home({ socketMessage, socket, serverAlive }: any) {
       {renderRestartModal()}
       {renderDisconnectedModal()}
       {renderErrorModal()}
+      {renderLoadingModal()}
     </>
   );
 }

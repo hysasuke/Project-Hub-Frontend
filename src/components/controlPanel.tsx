@@ -16,6 +16,7 @@ import {
   createGroupItem,
   deleteGroupItem,
   executeGroupItem,
+  getGroupItems,
   renameGroupItem,
   reorderGroupItems,
   requestFileSelection,
@@ -30,7 +31,9 @@ import Keypad from "./Keypad/keypad";
 import { useRouter } from "next/router";
 import { swapItem } from "@/utils/utils";
 import ControlPanelItem from "./ControlPanelItem";
+import { GlobalStoreContext } from "@/store/GlobalStore";
 export default function ControlPanel(props: any) {
+  const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
   let host =
     process.env.NODE_ENV === "production"
       ? window.location.origin
@@ -51,7 +54,6 @@ export default function ControlPanel(props: any) {
   const [pressedKey, setPressedKey] = React.useState<String>("");
   const [recordingKeyboard, setRecordingKeyboard] = React.useState(false);
   const [currentDraggingIndex, setCurrentDraggingIndex] = React.useState(-1);
-  const [groupItems, setGroupItems] = React.useState<any>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<any>(null);
   const selectedGroupItemType = React.useMemo(
     () => Array.from(groupItemType).join(", ").replaceAll("_", " "),
@@ -59,16 +61,10 @@ export default function ControlPanel(props: any) {
   );
 
   useEffect(() => {
-    if (props.groupItems) {
-      setGroupItems(props.groupItems);
-    }
-  }, [props.groupItems]);
-
-  useEffect(() => {
-    if (!props.editing) {
+    if (!globalStore.editing) {
       setCurrentDraggingIndex(-1);
     }
-  }, [props.editing]);
+  }, [globalStore.editing]);
 
   const handleQuery = () => {
     if (query.action) {
@@ -103,33 +99,6 @@ export default function ControlPanel(props: any) {
   };
   const keydownEventHandler = useCallback((event: any) => {
     event.preventDefault();
-    // if (event.key === "Shift" && !modifiers.includes("Shift")) {
-    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-    //   setModifiers([...modifiers, leftOrRight + "Shift"]);
-    // } else if (event.key === "Control" && !modifiers.includes("Control")) {
-    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-    //   setModifiers([...modifiers, leftOrRight + "Control"]);
-    // } else if (event.key === "Alt" && !modifiers.includes("Alt")) {
-    //   let leftOrRight = event.code.includes("Left") ? "Left" : "Right";
-    //   setModifiers([...modifiers, leftOrRight + "Alt"]);
-    // } else if (event.key === "Meta" && !modifiers.includes("Meta")) {
-    //   const modifierCopy = [...modifiers];
-    //   console.log(modifierCopy);
-    //   modifierCopy.push("LeftCmd");
-    //   setModifiers(modifierCopy);
-    // } else if (
-    //   event.key &&
-    //   pressedKey !== event.key &&
-    //   !["Control", "Shift", "Alt", "Meta"].includes(event.key)
-    // ) {
-    //   // Extract the number key from the code
-    //   if (event.code.includes("Digit")) {
-    //     setPressedKey(event.code.replace("Digit", "Num"));
-    //   } else if (event.code.includes("Key")) {
-    //     setPressedKey(event.code.replace("Key", ""));
-    //   }
-    // }
-
     let modifiers = [];
     if (event.ctrlKey) modifiers.push("Control");
     if (event.shiftKey) modifiers.push("Shift");
@@ -192,16 +161,16 @@ export default function ControlPanel(props: any) {
   const renderGroupItems = () => {
     return (
       <Grid.Container direction="row" wrap="wrap" gap={1}>
-        {groupItems.map((groupItem: any, index: number) => {
+        {globalStore.groupItems.map((groupItem: any, index: number) => {
           return (
             <ControlPanelItem
               key={"groupItem" + index}
               index={index}
               groupItem={groupItem}
-              editing={props.editing}
-              draggable={props.editing}
+              editing={globalStore.editing}
+              draggable={globalStore.editing}
               onClick={() => {
-                if (!props.editing) {
+                if (!globalStore.editing) {
                   executeGroupItem(groupItem.id);
                 } else {
                   setRenameModalVisible(true);
@@ -220,21 +189,23 @@ export default function ControlPanel(props: any) {
                 const { newArray, isModified } = swapItem(
                   currentDraggingIndex,
                   index,
-                  groupItems
+                  globalStore.groupItems
                 );
                 if (isModified) {
                   setCurrentDraggingIndex(index);
-                  setGroupItems(newArray);
+                  dispatch({
+                    groupItems: newArray
+                  });
                 }
               }}
               onDragEnd={async (e) => {
                 setCurrentDraggingIndex(-1);
-                await reorderGroupItems(groupItems);
+                await reorderGroupItems(globalStore.groupItems);
               }}
             />
           );
         })}
-        {props.groupItems.length < 20 && (
+        {globalStore.groupItems.length < 20 && (
           <Grid
             xs={4}
             sm={2}
@@ -289,7 +260,7 @@ export default function ControlPanel(props: any) {
       }
     }
     const result = await createGroupItem({
-      groupId: props.currentGroupId,
+      groupId: globalStore.currentGroupID,
       name: groupItemName,
       url: groupItemUrl,
       type: groupItemType.values().next().value,
@@ -299,7 +270,12 @@ export default function ControlPanel(props: any) {
     });
     if (result.error === 0) {
       createModalOnClose();
-      props.getGroupItems(props.currentGroupId);
+      const groupItemsResult = await getGroupItems(globalStore.currentGroupID);
+      if (groupItemsResult.error === 0) {
+        dispatch({
+          groupItems: groupItemsResult.data
+        });
+      }
     } else {
       props.setError(result);
     }
@@ -605,7 +581,14 @@ export default function ControlPanel(props: any) {
             onPress={async () => {
               let result = await deleteGroupItem(editingGroupItem.id);
               if (result.error === 0) {
-                props.getGroupItems(props.currentGroupId);
+                const groupItemsResult = await getGroupItems(
+                  globalStore.currentGroupID
+                );
+                if (groupItemsResult.error === 0) {
+                  dispatch({
+                    groupItems: groupItemsResult.data
+                  });
+                }
               }
               setDeleteModalVisible(false);
             }}
@@ -661,7 +644,14 @@ export default function ControlPanel(props: any) {
                 editingGroupItem.name
               );
               if (result.error === 0) {
-                props.getGroupItems(props.currentGroupId);
+                const groupItemsResult = await getGroupItems(
+                  globalStore.currentGroupID
+                );
+                if (groupItemsResult.error === 0) {
+                  dispatch({
+                    groupItems: groupItemsResult.data
+                  });
+                }
               }
               setRenameModalVisible(false);
             }}
@@ -674,7 +664,7 @@ export default function ControlPanel(props: any) {
   };
 
   const renderControlPanelContent = () => {
-    switch (props.currentGroup.type) {
+    switch (globalStore.currentGroup?.type) {
       case "group":
         return renderGroupItems();
       case "keypad":

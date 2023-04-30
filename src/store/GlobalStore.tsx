@@ -11,6 +11,12 @@ export const GlobalStoreContext = React.createContext<GlobalStoreContextType>({
 });
 
 export const initialGlobalStore = {
+  groups: [],
+  groupItems: [],
+  editing: false,
+  loading: false,
+  currentGroupID: -1,
+  currentGroup: null,
   touchBarComponents: [],
   currentDraggingComponent: null,
   touchBarWidth: 0,

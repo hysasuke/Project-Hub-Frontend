@@ -23,36 +23,27 @@ import TouchBar from "./TouchBar";
 import TouchBarSetting from "./TouchBar/touchBarSetting";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
+
+import { GlobalStoreContext } from "@/store/GlobalStore";
 type HeaderProps = {
-  setEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  editing: boolean;
   setShutdownModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
   socketMessage: any;
   socket: WebSocket;
   groupPanelExpanded: boolean;
   setGroupPanelExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   setRestartModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  groups: any[];
-  currentGroupId: number;
-  setCurrentGroup: React.Dispatch<React.SetStateAction<any>>;
-  setCurrentGroupId: React.Dispatch<React.SetStateAction<number>>;
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 export default function Header({
-  setEditing,
-  editing,
   setShutdownModalVisible,
   socketMessage,
   socket,
   groupPanelExpanded,
   setGroupPanelExpanded,
   setRestartModalVisible,
-  groups,
-  currentGroupId,
-  setCurrentGroup,
-  setCurrentGroupId,
   setVisible
 }: HeaderProps) {
+  const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
   const theme = useTheme();
   const [currentVolume, setCurrentVolume] = React.useState<number>(0);
   const [toVolume, setToVolume] = React.useState<number>(0);
@@ -65,11 +56,14 @@ export default function Header({
 
   const renderDropdown = () => {
     const dropdownItems = [
-      <Dropdown.Item key="edit" color={editing ? "success" : "primary"}>
+      <Dropdown.Item
+        key="edit"
+        color={globalStore.editing ? "success" : "primary"}
+      >
         <Row align="center">
           <EditIcon />
           <Text style={{ textTransform: "none", marginLeft: 5 }}>
-            {editing ? "Done" : "Edit"}
+            {globalStore.editing ? "Done" : "Edit"}
           </Text>
         </Row>
       </Dropdown.Item>,
@@ -90,7 +84,7 @@ export default function Header({
         </Row>
       </Dropdown.Item>
     ];
-    if (editing) {
+    if (globalStore.editing) {
       // Push at index 0
       dropdownItems.unshift(
         <Dropdown.Item key="touchBarSetting" color="primary">
@@ -123,7 +117,9 @@ export default function Header({
           onAction={(actionKey) => {
             switch (actionKey) {
               case "edit":
-                setEditing(!editing);
+                dispatch({
+                  editing: !globalStore.editing
+                });
                 break;
               case "touchBarSetting":
                 setTouchBarSettingModalVisible(true);
@@ -219,16 +215,20 @@ export default function Header({
         {renderDropdown()}
       </Navbar.Content>
       <Navbar.Collapse disableAnimation={true}>
-        {groups?.map((item, index) => (
+        {globalStore.groups?.map((item: any, index: number) => (
           <Navbar.CollapseItem key={"headerGroupItem:" + item.id}>
             <Button
-              color={currentGroupId === item.id ? "primary" : "secondary"}
+              color={
+                globalStore.currentGroupID === item.id ? "primary" : "secondary"
+              }
               onPress={() => {
                 if (toggleRef.current) {
                   toggleRef.current?.click();
                 }
-                setCurrentGroupId(item.id);
-                setCurrentGroup(item);
+                dispatch({
+                  currentGroupID: item.id,
+                  currentGroup: item
+                });
               }}
               ghost
               css={{

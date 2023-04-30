@@ -11,6 +11,7 @@ import React from "react";
 import {
   deleteGroup,
   getGroupItems,
+  getGroups,
   renameGroup,
   reorderGroups
 } from "@/modules/ControlPanelModule";
@@ -23,34 +24,30 @@ import {
 import RemoveCircle from "@mui/icons-material/RemoveCircle";
 import AddIcon from "@mui/icons-material/Add";
 import { swapItem } from "@/utils/utils";
+import { GlobalStoreContext } from "@/store/GlobalStore";
 export default function GroupPanel(props: any) {
-  const [currentGroupId, setCurrentGroupId] = React.useState(1);
+  const { globalStore, dispatch } = React.useContext(GlobalStoreContext);
   const [renameModalVisible, setRenameModalVisible] = React.useState(false);
   const [editingGroup, setEditingGroup] = React.useState<any>(null);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
   const [currentDraggingIndex, setCurrentDraggingIndex] = React.useState(-1);
-  const [groups, setGroups] = React.useState<any[]>([]);
-
   React.useEffect(() => {
-    if (props.groups && props.groups.length > 0) {
-      setCurrentGroupId(props.groups[0].id);
-      setGroups(props.groups);
-      props.setCurrentGroupId(props.groups[0].id);
-      props.setCurrentGroup(props.groups[0]);
+    if (globalStore.groups && globalStore.groups.length > 0) {
+      dispatch({ currentGroupID: globalStore.groups[0].id });
+      dispatch({ currentGroup: globalStore.groups[0] });
     }
-  }, [props.groups]);
+  }, [globalStore.groups]);
 
   const handleChangeGroup = async (group: any) => {
     let id = group.id;
-    setCurrentGroupId(id);
-    props.setCurrentGroupId(id);
-    props.setCurrentGroup(group);
+    dispatch({ currentGroupID: id, currentGroup: group });
   };
+
   const renderGroups = () => {
-    return groups.map((group: any, index: number) => {
+    return globalStore.groups.map((group: any, index: number) => {
       return (
         <ButtonBase
-          draggable={props.editing}
+          draggable={globalStore.editing}
           onDragStart={(e) => {
             setCurrentDraggingIndex(index);
           }}
@@ -59,20 +56,20 @@ export default function GroupPanel(props: any) {
             const { newArray, isModified } = swapItem(
               currentDraggingIndex,
               index,
-              groups
+              globalStore.groups
             );
             if (isModified) {
               setCurrentDraggingIndex(index);
-              setGroups(newArray);
+              dispatch({ groups: newArray });
             }
           }}
           onDragEnd={async (e) => {
             setCurrentDraggingIndex(-1);
-            await reorderGroups(groups);
+            await reorderGroups(globalStore.groups);
           }}
           key={"group-" + group.id}
           onClick={() => {
-            if (!props.editing) {
+            if (!globalStore.editing) {
               handleChangeGroup(group);
             } else {
               setRenameModalVisible(true);
@@ -88,10 +85,12 @@ export default function GroupPanel(props: any) {
             height: "10%"
           }}
         >
-          <Text color={currentGroupId === group.id ? "primary" : "none"}>
+          <Text
+            color={globalStore.currentGroupID === group.id ? "primary" : "none"}
+          >
             {group.name}
           </Text>
-          {props.editing && (
+          {globalStore.editing && (
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
@@ -157,7 +156,10 @@ export default function GroupPanel(props: any) {
                 editingGroup.name
               );
               if (result.error === 0) {
-                props.getGroups();
+                let getGroupsResult = await getGroups();
+                if (getGroupsResult.error === 0) {
+                  dispatch({ groups: getGroupsResult.data });
+                }
               }
               setRenameModalVisible(false);
             }}
@@ -203,7 +205,10 @@ export default function GroupPanel(props: any) {
             onPress={async () => {
               let result = await deleteGroup(editingGroup.id);
               if (result.error === 0) {
-                props.getGroups(props.currentGroupId);
+                let getGroupsResult = await getGroups();
+                if (getGroupsResult.error === 0) {
+                  dispatch({ groups: getGroupsResult.data });
+                }
               }
               setDeleteModalVisible(false);
             }}

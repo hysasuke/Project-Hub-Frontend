@@ -34,23 +34,23 @@ function TouchBar(props: Props) {
 
   const [animation, setAnimation] = React.useState("");
 
-  React.useEffect(() => {
-    const _getHeaderComponents = async () => {
-      const result = await getHeaderComponents();
-      if (result.error === 0) {
-        let { touchBarComponents, touchBarSettingComponents } =
-          generateTouchBarComponents(
-            result.data,
-            globalStore.touchBarSettingComponents
-          );
-        dispatch({
-          touchBarComponents: touchBarComponents,
-          touchBarSettingComponents: touchBarSettingComponents
-        });
-      }
-    };
-    _getHeaderComponents();
-  }, []);
+  // React.useEffect(() => {
+  //   const _getHeaderComponents = async () => {
+  //     const result = await getHeaderComponents();
+  //     if (result.error === 0) {
+  //       let { touchBarComponents, touchBarSettingComponents } =
+  //         generateTouchBarComponents(
+  //           result.data,
+  //           globalStore.touchBarSettingComponents
+  //         );
+  //       dispatch({
+  //         touchBarComponents: touchBarComponents,
+  //         touchBarSettingComponents: touchBarSettingComponents
+  //       });
+  //     }
+  //   };
+  //   _getHeaderComponents();
+  // }, []);
 
   React.useEffect(() => {
     if (touchBarRef.current) {
