@@ -19,10 +19,9 @@ export default function App({ Component, pageProps }: AppProps) {
   const [socket, setSocket] = useState<WebSocket | null>();
   const [serverAlive, setServerAlive] = useState<boolean>(true);
   const serverAliveCheckInterval = useRef<any>(null);
-
   const [globalStore, setGlobalStore] = useState<any>({
     host:
-      process.env.NODE_ENV === "production"
+      typeof window !== "undefined" && process.env.NODE_ENV === "production"
         ? window.location.origin
         : process.env.NEXT_PUBLIC_HOST,
     ...initialGlobalStore
