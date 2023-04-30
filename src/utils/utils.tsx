@@ -249,9 +249,7 @@ export async function handleOnDragEnd(
       undefined,
       undefined
     );
-    console.log(result);
     touchBarComponents[index].id = result.data.id;
-    console.log("touchBarComponents", touchBarComponents);
     dispatch({
       touchBarComponents: touchBarComponents
     });

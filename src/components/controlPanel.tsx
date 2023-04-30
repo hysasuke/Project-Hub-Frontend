@@ -350,7 +350,6 @@ export default function ControlPanel(props: any) {
             hidden
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
-                console.log(e.target.files[0]);
                 setSelectedIcon(e.target.files[0]);
               }
             }}
@@ -488,7 +487,6 @@ export default function ControlPanel(props: any) {
     if (selectedGroupItemType !== "keybind") {
       return null;
     }
-    console.log(modifiers);
     const keybindValue = [...modifiers, pressedKey].join("+");
     const buttonText = recordingKeyboard ? "Stop Recording" : "Start Recording";
     const buttonColor = recordingKeyboard ? "error" : "primary";
