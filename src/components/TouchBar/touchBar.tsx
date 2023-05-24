@@ -18,6 +18,7 @@ import { getHeaderComponents } from "@/modules/HeaderModule";
 import MediaControl from "./mediaControl";
 import Timer from "./timer";
 import ScreenShotControl from "./screenShotControl";
+import QuickNotes from "./quickNotes";
 const ComponentContainer = styled("div")({
   borderRadius: 5,
   height: "100%",
@@ -71,6 +72,7 @@ function TouchBar(props: Props) {
   }, [globalStore.touchBarFull]);
 
   const getTouchBarComponent = (
+    id: number,
     type: string,
     isDummy: boolean,
     text?: string
@@ -101,6 +103,8 @@ function TouchBar(props: Props) {
           return <Timer disabled={false} setAnimation={setAnimation} />;
         case "screenShotControl":
           return <ScreenShotControl disabled={false} />;
+        case "quickNotes":
+          return <QuickNotes id={id} disabled={false} text={text} />;
         default:
           return null;
       }
@@ -110,6 +114,7 @@ function TouchBar(props: Props) {
   const renderTouchBarComponents = () => {
     return globalStore.touchBarComponents.map(
       (component: any, index: number) => {
+        console.log(component);
         return (
           <ComponentContainer
             key={"touchBarComponent:" + index}
@@ -136,6 +141,7 @@ function TouchBar(props: Props) {
             }}
           >
             {getTouchBarComponent(
+              component.id,
               component.type,
               component.isDummy,
               component.text

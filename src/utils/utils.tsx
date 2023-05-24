@@ -1,6 +1,4 @@
-import * as Clock from "@/components/TouchBar/clock";
-import * as CustomText from "@/components/TouchBar/customText";
-import * as ScreenSwitcher from "@/components/TouchBar/screenSwitcher";
+import { ComponentWidthMap } from "@/components/TouchBar";
 import {
   addHeaderComponent,
   removeHeaderComponent,
@@ -43,20 +41,8 @@ export function generateTouchBarComponents(
         tsc.isDummy = true;
       }
     });
-    let width = 0;
-    switch (component.type) {
-      case "clock":
-        width = Clock.CLOCK_WIDTH;
-        break;
-      case "customText":
-        width = CustomText.CUSTOM_TEXT_WIDTH;
-        break;
-      case "screenSwitcher":
-        width = ScreenSwitcher.SCREEN_SWITCHER_WIDTH;
-        break;
-      default:
-        break;
-    }
+    let width = ComponentWidthMap[component.type];
+
     return {
       id: component.id,
       type: component.type,
@@ -112,9 +98,12 @@ export function handleOnDragOverFromSettingToTouchBar(
 ) {
   e.preventDefault();
   const currentWidth =
-    globalStore.touchBarComponents.reduce((acc: number, component: any) => {
-      return acc + component.width;
-    }, 0) + globalStore.currentDraggingComponent.width;
+    globalStore.touchBarComponents
+      .filter((component: any) => component.from !== "touchBarSetting")
+      .reduce((acc: number, component: any) => {
+        return acc + component.width;
+      }, 0) + globalStore.currentDraggingComponent.width;
+
   if (currentWidth > globalStore.touchBarWidth && !globalStore.touchBarFull) {
     dispatch({
       touchBarFull: true
@@ -282,4 +271,25 @@ export async function handleOnDragEnd(
     // Call reorder API
     await reorderHeaderComponents(globalStore.touchBarComponents);
   }
+}
+
+// Debounce function
+type Timer = ReturnType<typeof setTimeout>;
+
+export function debounce<T extends (...args: any[]) => void>(
+  callback: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timer: Timer | null;
+
+  return function debouncedFunction(...args: Parameters<T>) {
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = setTimeout(() => {
+      callback(...args);
+      timer = null;
+    }, delay);
+  };
 }

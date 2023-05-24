@@ -21,7 +21,10 @@ import {
   Timer,
   ScreenShotControl,
   SCREEN_SHOT_CONTROL_WIDTH,
-  SCREEN_SHOT_CONTROL_TYPE
+  SCREEN_SHOT_CONTROL_TYPE,
+  QuickNotes,
+  QUICK_NOTES_WIDTH,
+  QUICK_NOTES_TYPE
 } from "./index";
 import { styled } from "@mui/material/styles";
 
@@ -137,6 +140,10 @@ export default function TouchBarSetting(props: touchBarSettingProps) {
         case SCREEN_SHOT_CONTROL_TYPE:
           component = <ScreenShotControl disabled={true} />;
           width = SCREEN_SHOT_CONTROL_WIDTH;
+          break;
+        case QUICK_NOTES_TYPE:
+          component = <QuickNotes disabled={true} />;
+          width = QUICK_NOTES_WIDTH;
           break;
         default:
           component = null;

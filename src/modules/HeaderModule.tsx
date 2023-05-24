@@ -54,3 +54,14 @@ export async function executeHeaderComponent(body: any) {
   });
   return data;
 }
+
+export async function updateHeaderComponent(id: number, body: any) {
+  const data = await fetch(`${host}/headerComponent/${id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  return data;
+}

@@ -25,7 +25,25 @@ import ScreenShotControl, {
   TYPE as SCREEN_SHOT_CONTROL_TYPE
 } from "./screenShotControl";
 
+import QuickNotes, {
+  QUICK_NOTES_WIDTH,
+  TYPE as QUICK_NOTES_TYPE
+} from "./quickNotes";
+
 import Timer, { TIMER_WIDTH, TYPE as TIMER_TYPE } from "./timer";
+
+export const ComponentWidthMap: {
+  [key: string]: number;
+} = {
+  [CLOCK_TYPE]: CLOCK_WIDTH,
+  [CUSTOM_TEXT_TYPE]: CUSTOM_TEXT_WIDTH,
+  [SCREEN_SWITCHER_TYPE]: SCREEN_SWITCHER_WIDTH,
+  [MEDIA_CONTROL_TYPE]: MEDIA_CONTROL_WIDTH,
+  [VOLUME_CONTROL_TYPE]: VOLUME_CONTROL_WIDTH,
+  [TIMER_TYPE]: TIMER_WIDTH,
+  [SCREEN_SHOT_CONTROL_TYPE]: SCREEN_SHOT_CONTROL_WIDTH,
+  [QUICK_NOTES_TYPE]: QUICK_NOTES_WIDTH
+};
 export default TouchBar;
 
 export {
@@ -35,7 +53,8 @@ export {
   MediaControl,
   VolumeControl,
   Timer,
-  ScreenShotControl
+  ScreenShotControl,
+  QuickNotes
 };
 
 export {
@@ -52,5 +71,7 @@ export {
   TIMER_TYPE,
   TIMER_WIDTH,
   SCREEN_SHOT_CONTROL_WIDTH,
-  SCREEN_SHOT_CONTROL_TYPE
+  SCREEN_SHOT_CONTROL_TYPE,
+  QUICK_NOTES_WIDTH,
+  QUICK_NOTES_TYPE
 };

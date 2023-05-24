@@ -50,6 +50,10 @@ export const initialGlobalStore = {
     {
       type: "screenShotControl",
       name: "Screenshot Control"
+    },
+    {
+      type: "quickNotes",
+      name: "Quick Notes"
     }
   ]
 };
