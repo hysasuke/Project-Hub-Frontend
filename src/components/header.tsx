@@ -65,22 +65,6 @@ export default function Header({
             {globalStore.editing ? "Done" : "Edit"}
           </Text>
         </Row>
-      </Dropdown.Item>,
-      <Dropdown.Item withDivider key="restart" color={"warning"}>
-        <Row align="center">
-          <RestartAltIcon />
-          <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
-            Restart
-          </Text>
-        </Row>
-      </Dropdown.Item>,
-      <Dropdown.Item key="shutdown" color={"error"}>
-        <Row align="center">
-          <PowerSettingsNewIcon />
-          <Text style={{ textTransform: "uppercase", marginLeft: 5 }}>
-            Shutdown
-          </Text>
-        </Row>
       </Dropdown.Item>
     ];
     if (globalStore.editing) {
