@@ -56,7 +56,7 @@ export async function executeHeaderComponent(body: any) {
 }
 
 export async function updateHeaderComponent(id: number, body: any) {
-  const data = await fetch(`${host}/headerComponent/${id}`, {
+  const data = await fetch(`${host}/headerComponent/update/${id}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
